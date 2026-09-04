@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "nodemon backend/server.js",
     "start": "node backend/server.js",
-    "build": "prisma generate --schema=backend/prisma/schema.prisma",
-    "vercel-build": "prisma generate --schema=backend/prisma/schema.prisma",
+    "build": "prisma generate --schema=backend/prisma/schema.prisma && mkdir -p public && cp -r frontend/* public/",
+    "vercel-build": "prisma generate --schema=backend/prisma/schema.prisma && mkdir -p public && cp -r frontend/* public/",
     "postinstall": "prisma generate --schema=backend/prisma/schema.prisma",
     "prisma:generate": "prisma generate --schema=backend/prisma/schema.prisma",
     "prisma:migrate": "prisma migrate dev --schema=backend/prisma/schema.prisma",

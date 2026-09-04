@@ -1,4 +1,5 @@
 require("dotenv").config();
+const fs = require("fs");
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
@@ -34,7 +35,9 @@ app.use("/api/groups/:groupId/members", memberRoutes);
 app.use("/api/groups/:groupId", waterRoutes);
 
 // Serve the vanilla HTML/CSS/JS frontend
-const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
+const FRONTEND_DIR = fs.existsSync(path.join(__dirname, "..", "public"))
+  ? path.join(__dirname, "..", "public")
+  : path.join(__dirname, "..", "frontend");
 app.use(express.static(FRONTEND_DIR));
 
 app.get("/", (req, res) => {

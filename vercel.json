@@ -1,8 +1,8 @@
 {
-  "version": 2,
+  "outputDirectory": "public",
   "functions": {
     "api/index.js": {
-      "includeFiles": "backend/prisma/**"
+      "includeFiles": "backend/prisma/schema.prisma"
     }
   },
   "rewrites": [
@@ -13,14 +13,6 @@
     {
       "source": "/uploads/(.*)",
       "destination": "/api/index.js"
-    },
-    {
-      "source": "/",
-      "destination": "/frontend/index.html"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/frontend/$1"
     }
   ]
 }

@@ -4,3 +4,4 @@ backend/uploads/*
 !backend/uploads/.gitkeep
 *.log
 .DS_Store
+public/
