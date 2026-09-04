@@ -92,12 +92,27 @@ async function loadHistory() {
   const user = await requireLoggedIn();
   if (!user) return;
 
+  renderUserBox(user);
+
   currentGroupId = getActiveGroupId();
+  try {
+    const { groups } = await Api.listGroups();
+    if (!groups || groups.length === 0) {
+      window.location.href = "group.html";
+      return;
+    }
+    if (!currentGroupId || !groups.some((g) => g.id === currentGroupId)) {
+      currentGroupId = groups[0].id;
+      setActiveGroupId(currentGroupId);
+    }
+  } catch (err) {
+    console.warn("Could not verify groups:", err);
+  }
+
   if (!currentGroupId) {
     window.location.href = "group.html";
     return;
   }
 
-  renderUserBox(user);
   loadHistory();
 })();

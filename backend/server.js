@@ -136,9 +136,8 @@ app.use((err, req, res, next) => {
   }
 
   res.status(err.status || 500).json({
-    message: err.status
-      ? err.message
-      : "Unable to complete your request. Please try again.",
+    message: err.message || "Unable to complete your request. Please try again.",
+    code: err.code || null,
   });
 });
 
