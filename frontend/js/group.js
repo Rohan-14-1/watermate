@@ -30,17 +30,31 @@ function renderGroups(groups) {
     return;
   }
 
+  const activeId = getActiveGroupId();
+
   section.innerHTML = `
     <div class="group-cards">
       ${groups
-        .map(
-          (g) => `
-        <div class="group-card" data-group-id="${g.id}">
-          <div class="group-card__name">${escapeHtml(g.name)}</div>
-          <div class="group-card__meta">${g.memberCount} member${g.memberCount === 1 ? "" : "s"} \u00b7 Code ${g.inviteCode}</div>
-        </div>
-      `
-        )
+        .map((g) => {
+          const isActive = g.id === activeId || (!activeId && groups[0].id === g.id);
+          return `
+            <div class="group-card" data-group-id="${g.id}" style="${
+              isActive ? "border-color:var(--teal-500);box-shadow:0 0 0 2px var(--teal-100);" : ""
+            }">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                <div class="group-card__name" style="margin-bottom:0;">${escapeHtml(g.name)}</div>
+                ${
+                  isActive
+                    ? '<span class="badge badge-success">Active Flat</span>'
+                    : '<span class="text-muted" style="font-size:0.78rem;">Tap to open &rarr;</span>'
+                }
+              </div>
+              <div class="group-card__meta">${g.memberCount} member${
+            g.memberCount === 1 ? "" : "s"
+          } &middot; Invite Code <strong>${g.inviteCode}</strong></div>
+            </div>
+          `;
+        })
         .join("")}
     </div>
   `;
@@ -128,5 +142,22 @@ document.getElementById("joinGroupForm").addEventListener("submit", async (e) =>
   const user = await requireLoggedIn();
   if (!user) return;
   renderUserBox(user);
+
+  const avatar = document.getElementById("settingsAvatar");
+  const nameEl = document.getElementById("settingsUserName");
+  const emailEl = document.getElementById("settingsUserEmail");
+  const logoutBtn = document.getElementById("settingsLogoutBtn");
+
+  if (avatar) avatar.textContent = initials(user.name);
+  if (nameEl) nameEl.textContent = user.name;
+  if (emailEl) emailEl.textContent = user.email;
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async () => {
+      await Api.logout();
+      localStorage.removeItem("wm_active_group");
+      window.location.href = "login.html";
+    });
+  }
+
   loadGroups();
 })();

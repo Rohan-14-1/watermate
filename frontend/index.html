@@ -19,8 +19,16 @@
     (async function () {
       try {
         await Api.me();
+        const { groups } = await Api.listGroups();
         const activeGroup = getActiveGroupId();
-        window.location.href = activeGroup ? "dashboard.html" : "group.html";
+        if (activeGroup && groups.some(g => g.id === activeGroup)) {
+          window.location.href = "dashboard.html";
+        } else if (groups && groups.length > 0) {
+          setActiveGroupId(groups[0].id);
+          window.location.href = "dashboard.html";
+        } else {
+          window.location.href = "group.html";
+        }
       } catch (err) {
         window.location.href = "login.html";
       }

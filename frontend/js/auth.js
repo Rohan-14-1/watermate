@@ -14,6 +14,25 @@ function setLoading(button, isLoading, loadingText, defaultText) {
   button.textContent = isLoading ? loadingText : defaultText;
 }
 
+async function routeAfterAuth() {
+  try {
+    const { groups } = await Api.listGroups();
+    const active = getActiveGroupId();
+    if (active && groups.some((g) => g.id === active)) {
+      window.location.href = "dashboard.html";
+      return;
+    }
+    if (groups && groups.length > 0) {
+      setActiveGroupId(groups[0].id);
+      window.location.href = "dashboard.html";
+      return;
+    }
+    window.location.href = "group.html";
+  } catch (_) {
+    window.location.href = "dashboard.html";
+  }
+}
+
 const loginForm = document.getElementById("loginForm");
 if (loginForm) {
   loginForm.addEventListener("submit", async (e) => {
@@ -27,7 +46,7 @@ if (loginForm) {
     setLoading(submitBtn, true, "Logging in\u2026", "Log in");
     try {
       await Api.login({ email, password });
-      window.location.href = "group.html";
+      await routeAfterAuth();
     } catch (err) {
       showAlert(err.message || "Invalid email or password.");
       setLoading(submitBtn, false, "Logging in\u2026", "Log in");
@@ -55,10 +74,11 @@ if (registerForm) {
     setLoading(submitBtn, true, "Creating account\u2026", "Create account");
     try {
       await Api.register({ name, email, password, confirmPassword });
-      window.location.href = "group.html";
+      await routeAfterAuth();
     } catch (err) {
       showAlert(err.message || "Unable to create your account.");
       setLoading(submitBtn, false, "Creating account\u2026", "Create account");
     }
   });
 }
+
