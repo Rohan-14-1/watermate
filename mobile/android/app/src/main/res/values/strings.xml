@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">WaterMate</string>
+    <string name="title_activity_main">WaterMate</string>
+    <string name="package_name">com.watermate.app</string>
+    <string name="custom_url_scheme">com.watermate.app</string>
+</resources>

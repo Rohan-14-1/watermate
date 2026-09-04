@@ -61,12 +61,12 @@ function renderDashboard(data) {
 
   const lastDelivery = data.lastDelivery
     ? `
-      <img class="delivery-card__photo" src="${data.lastDelivery.photoUrl}" alt="Water delivery photo" />
+      <img class="delivery-card__photo" src="${Api.resolveMediaUrl(data.lastDelivery.photoUrl)}" alt="Water delivery photo" />
       <div class="delivery-card__body">
         <div class="delivery-card__name">Brought by ${escapeHtml(data.lastDelivery.name)}</div>
         <div class="delivery-card__time">${formatDateTime(data.lastDelivery.completedAt)}</div>
       </div>
-      <span class="badge badge-success">\u2713 Completed</span>
+      <span class="badge badge-success">&#10003; Completed</span>
     `
     : `<div class="text-muted">No water deliveries yet. The first completed delivery will appear here.</div>`;
 
@@ -83,7 +83,7 @@ function renderDashboard(data) {
         tag = `<div class="queue__tag">Next</div>`;
       } else if (currentIndex !== -1 && idx < currentIndex) {
         stateClass = "is-done";
-        markerContent = "\u2713";
+        markerContent = "&#10003;";
         tag = `<div class="queue__tag">Done</div>`;
       } else {
         tag = `<div class="queue__tag">Waiting</div>`;
@@ -149,6 +149,55 @@ async function loadDashboard() {
 
 /* ---------------- Submit water modal ---------------- */
 
+async function captureWithCapacitorCamera(sourceType) {
+  const modalAlert = document.getElementById("modalAlert");
+  if (modalAlert) modalAlert.innerHTML = "";
+  const Camera = window.Capacitor?.Plugins?.Camera;
+
+  if (Camera) {
+    try {
+      const image = await Camera.getPhoto({
+        quality: 85,
+        allowEditing: false,
+        resultType: "uri",
+        source: sourceType === "PHOTOS" ? "PHOTOS" : "CAMERA",
+      });
+
+      if (image && image.webPath) {
+        const response = await fetch(image.webPath);
+        const blob = await response.blob();
+        const ext = image.format || "jpg";
+        const file = new File([blob], `water_${Date.now()}.${ext}`, { type: blob.type || "image/jpeg" });
+        selectedFile = file;
+        const previewBox = document.getElementById("previewBox");
+        if (previewBox) {
+          previewBox.innerHTML = `
+            <div class="photo-preview">
+              <img src="${image.webPath}" alt="Water photo preview" />
+            </div>
+          `;
+        }
+        const submitBtn = document.getElementById("submitWaterBtn");
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    } catch (err) {
+      if (!err?.message?.includes("User cancelled")) {
+        console.warn("Camera error:", err);
+      }
+    }
+  } else {
+    const photoInput = document.getElementById("photoInput");
+    if (photoInput) {
+      if (sourceType === "CAMERA") {
+        photoInput.setAttribute("capture", "environment");
+      } else {
+        photoInput.removeAttribute("capture");
+      }
+      photoInput.click();
+    }
+  }
+}
+
 function openSubmitModal() {
   selectedFile = null;
   const overlay = document.getElementById("submitModal");
@@ -160,9 +209,17 @@ function openSubmitModal() {
       <button class="modal__close" id="closeModalBtn" aria-label="Close">&times;</button>
     </div>
     <div id="modalAlert"></div>
+    <div style="display:flex; gap:10px; margin-bottom:12px;">
+      <button type="button" class="btn btn-secondary" id="cameraBtn" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; font-size:0.9rem; padding:10px 8px;">
+        &#128247; Take Photo
+      </button>
+      <button type="button" class="btn btn-secondary" id="galleryBtn" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; font-size:0.9rem; padding:10px 8px;">
+        &#128444;&#65039; Gallery
+      </button>
+    </div>
     <label class="photo-drop" id="photoDrop">
       <div id="photoDropLabel">
-        <div style="font-size:1.8rem;margin-bottom:6px;">📸</div>
+        <div style="font-size:1.8rem;margin-bottom:6px;">&#128248;</div>
         <strong>Snap or choose a photo of the water</strong><br />
         <span class="text-muted" style="font-size:0.8rem;">JPG, PNG, or WebP &middot; up to 5MB</span>
       </div>
@@ -178,6 +235,9 @@ function openSubmitModal() {
   overlay.addEventListener("click", (e) => {
     if (e.target === overlay) closeSubmitModal();
   });
+
+  document.getElementById("cameraBtn").addEventListener("click", () => captureWithCapacitorCamera("CAMERA"));
+  document.getElementById("galleryBtn").addEventListener("click", () => captureWithCapacitorCamera("PHOTOS"));
 
   document.getElementById("photoInput").addEventListener("change", handlePhotoChange);
   document.getElementById("submitWaterBtn").addEventListener("click", handleSubmitWater);

@@ -159,5 +159,40 @@ document.getElementById("joinGroupForm").addEventListener("submit", async (e) =>
     });
   }
 
+  // Check biometric capability on native devices
+  const NativeBiometric = window.Capacitor?.Plugins?.NativeBiometric;
+  if (NativeBiometric) {
+    try {
+      const info = await NativeBiometric.isAvailable();
+      if (info.isAvailable) {
+        const card = document.getElementById("biometricSettingsCard");
+        const icon = document.getElementById("biometricSettingsIcon");
+        const title = document.getElementById("biometricSettingsTitle");
+        const sub = document.getElementById("biometricSettingsSub");
+        const badge = document.getElementById("biometricBadge");
+
+        const platform = window.Capacitor?.getPlatform ? window.Capacitor.getPlatform() : "web";
+        const isFaceId = platform === "ios" && info.biometryType !== 1;
+
+        if (icon) icon.textContent = isFaceId ? "\uD83D\uDC64" : "\uD83D\uDC46";
+        if (title) title.textContent = isFaceId ? "Face ID Sign-In" : "Fingerprint Sign-In";
+        if (sub) {
+          sub.textContent = isFaceId
+            ? "Unlock WaterMate securely using Face ID"
+            : "Unlock WaterMate securely using your fingerprint";
+        }
+
+        const enabled = localStorage.getItem("wm_biometric_enabled") === "true";
+        if (badge) {
+          badge.textContent = enabled ? "\u2713 Active" : "Available";
+          badge.className = enabled ? "badge badge-success" : "badge";
+        }
+        if (card) card.style.display = "block";
+      }
+    } catch (e) {
+      console.warn("Biometric check in settings:", e);
+    }
+  }
+
   loadGroups();
 })();

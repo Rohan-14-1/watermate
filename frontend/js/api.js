@@ -2,14 +2,72 @@
 // should call fetch() directly - this keeps API logic from being
 // duplicated across pages.
 
-const API_BASE = "/api";
+const PRODUCTION_API_URL = "https://watermate.vercel.app/api";
+
+function isNativePlatform() {
+  return (
+    typeof window !== "undefined" &&
+    (window.Capacitor !== undefined ||
+      window.location.protocol === "capacitor:" ||
+      window.location.protocol === "ionic:" ||
+      window.location.protocol === "file:" ||
+      (window.location.hostname === "localhost" && !window.location.port))
+  );
+}
+
+// Single configurable API base URL
+// Web uses relative '/api' on same origin, mobile app uses production API URL
+const API_BASE =
+  (typeof window !== "undefined" && window.WATERMATE_API_BASE) ||
+  (isNativePlatform() ? PRODUCTION_API_URL : "/api");
+
+function resolveMediaUrl(path) {
+  if (!path) return "";
+  if (
+    path.startsWith("http://") ||
+    path.startsWith("https://") ||
+    path.startsWith("data:") ||
+    path.startsWith("blob:")
+  ) {
+    return path;
+  }
+  const origin = API_BASE.replace(/\/api\/?$/, "");
+  return `${origin}${path.startsWith("/") ? "" : "/"}${path}`;
+}
+
+function checkOnline() {
+  if (typeof navigator !== "undefined" && "onLine" in navigator && !navigator.onLine) {
+    throw new Error("No internet connection. Please check your connection and try again.");
+  }
+}
 
 async function apiRequest(url, options = {}) {
-  const response = await fetch(`${API_BASE}${url}`, {
-    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
-    credentials: "include",
-    ...options,
-  });
+  checkOnline();
+
+  const token = typeof localStorage !== "undefined" ? localStorage.getItem("wm_auth_token") : null;
+  const headers = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(options.headers || {}),
+  };
+
+  let response;
+  try {
+    response = await fetch(`${API_BASE}${url}`, {
+      credentials: "include",
+      ...options,
+      headers,
+    });
+  } catch (err) {
+    if (
+      (typeof navigator !== "undefined" && !navigator.onLine) ||
+      err.name === "TypeError" ||
+      err.message?.toLowerCase().includes("fetch")
+    ) {
+      throw new Error("No internet connection. Please check your connection and try again.");
+    }
+    throw err;
+  }
 
   let data = {};
   try {
@@ -26,11 +84,31 @@ async function apiRequest(url, options = {}) {
 }
 
 async function apiUpload(url, formData) {
-  const response = await fetch(`${API_BASE}${url}`, {
-    method: "POST",
-    credentials: "include",
-    body: formData,
-  });
+  checkOnline();
+
+  const token = typeof localStorage !== "undefined" ? localStorage.getItem("wm_auth_token") : null;
+  const headers = {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  let response;
+  try {
+    response = await fetch(`${API_BASE}${url}`, {
+      method: "POST",
+      credentials: "include",
+      headers,
+      body: formData,
+    });
+  } catch (err) {
+    if (
+      (typeof navigator !== "undefined" && !navigator.onLine) ||
+      err.name === "TypeError" ||
+      err.message?.toLowerCase().includes("fetch")
+    ) {
+      throw new Error("No internet connection. Please check your connection and try again.");
+    }
+    throw err;
+  }
 
   let data = {};
   try {
@@ -48,11 +126,36 @@ async function apiUpload(url, formData) {
 
 const Api = {
   // Auth
-  register: (payload) =>
-    apiRequest("/auth/register", { method: "POST", body: JSON.stringify(payload) }),
-  login: (payload) =>
-    apiRequest("/auth/login", { method: "POST", body: JSON.stringify(payload) }),
-  logout: () => apiRequest("/auth/logout", { method: "POST" }),
+  register: async (payload) => {
+    const data = await apiRequest("/auth/register", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    if (data.token && typeof localStorage !== "undefined") {
+      localStorage.setItem("wm_auth_token", data.token);
+    }
+    return data;
+  },
+  login: async (payload) => {
+    const data = await apiRequest("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    if (data.token && typeof localStorage !== "undefined") {
+      localStorage.setItem("wm_auth_token", data.token);
+    }
+    return data;
+  },
+  logout: async () => {
+    try {
+      await apiRequest("/auth/logout", { method: "POST" });
+    } finally {
+      if (typeof localStorage !== "undefined") {
+        localStorage.removeItem("wm_auth_token");
+        localStorage.removeItem("wm_active_group");
+      }
+    }
+  },
   me: () => apiRequest("/auth/me"),
 
   // Groups

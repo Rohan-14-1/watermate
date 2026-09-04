@@ -37,6 +37,18 @@
 
         <div id="alertBox"></div>
 
+        <div id="biometricSection" style="display:none; margin-bottom: 20px;">
+          <button type="button" class="btn btn-secondary btn-block" id="biometricBtn" style="display:flex; align-items:center; justify-content:center; gap:10px; font-weight:600; border:1.5px solid var(--teal-600); color:var(--ocean-900); background:#f0f9f9; padding: 13px 16px; border-radius: var(--radius-sm); font-size: 1rem;">
+            <span id="biometricIcon" style="font-size:1.35rem;">&#128100;</span>
+            <span id="biometricLabel">Log in with Face ID</span>
+          </button>
+          <div style="display:flex; align-items:center; margin: 18px 0 10px; text-align:center;">
+            <div style="flex:1; border-bottom:1px solid var(--border);"></div>
+            <span style="padding:0 12px; font-size:0.78rem; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.06em; font-weight:600;">or continue with password</span>
+            <div style="flex:1; border-bottom:1px solid var(--border);"></div>
+          </div>
+        </div>
+
         <form id="loginForm" novalidate>
           <div class="field">
             <label for="email">Email</label>

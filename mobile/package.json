@@ -1,0 +1,30 @@
+{
+  "name": "watermate-mobile",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "description": "WaterMate mobile application powered by Capacitor",
+  "scripts": {
+    "build": "node scripts/sync-frontend.js",
+    "sync": "npm run build && npx cap sync",
+    "sync:android": "npm run build && npx cap sync android",
+    "sync:ios": "npm run build && npx cap sync ios",
+    "open:android": "npx cap open android",
+    "open:ios": "npx cap open ios",
+    "build:android": "npm run sync:android && cd android && ./gradlew assembleDebug",
+    "build:ios": "npm run sync:ios && cd ios/App && xcodebuild -project App.xcodeproj -scheme App -destination 'generic/platform=iOS Simulator' build CODE_SIGNING_ALLOWED=NO"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.1",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/camera": "^8.2.4",
+    "@capacitor/core": "^8.5.1",
+    "@capacitor/ios": "^8.5.1",
+    "@capacitor/status-bar": "^8.0.3",
+    "@capgo/capacitor-native-biometric": "^8.6.7"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.1",
+    "typescript": "^7.0.2"
+  }
+}

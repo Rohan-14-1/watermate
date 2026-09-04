@@ -45,11 +45,11 @@ function renderHistory(data) {
         .map(
           (r) => `
         <div class="history-card">
-          <img class="history-card__photo" src="${r.photoUrl}" alt="Water delivery photo" />
+          <img class="history-card__photo" src="${Api.resolveMediaUrl(r.photoUrl)}" alt="Water delivery photo" />
           <div class="history-card__body">
             <div class="history-card__name">${escapeHtml(r.name)}</div>
             <div class="history-card__time">${formatDateTime(r.completedAt)}</div>
-            <span class="badge badge-success">\u2713 Completed</span>
+            <span class="badge badge-success">&#10003; Completed</span>
           </div>
         </div>
       `

@@ -110,7 +110,7 @@ img {
 .topbar {
   background: var(--ocean-900);
   color: #eaf5f4;
-  padding: 14px 24px;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) 24px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -423,7 +423,10 @@ img {
 
 @media (max-width: 768px) {
   .topbar {
-    padding: 12px 18px;
+    padding-top: calc(14px + env(safe-area-inset-top, 0px));
+    padding-bottom: 12px;
+    padding-left: max(18px, env(safe-area-inset-left, 0px));
+    padding-right: max(18px, env(safe-area-inset-right, 0px));
     position: sticky;
     top: 0;
     z-index: 30;

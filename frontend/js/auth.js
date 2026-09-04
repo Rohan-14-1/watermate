@@ -33,8 +33,94 @@ async function routeAfterAuth() {
   }
 }
 
+/* ---------------- Biometric Authentication (Face ID / Fingerprint) ---------------- */
+
+let isBiometricAvailable = false;
+let isFaceIdDevice = false;
+
+async function checkBiometrics() {
+  const NativeBiometric = window.Capacitor?.Plugins?.NativeBiometric;
+  if (!NativeBiometric) return;
+
+  try {
+    const info = await NativeBiometric.isAvailable();
+    if (!info.isAvailable) return;
+
+    isBiometricAvailable = true;
+    const platform = window.Capacitor?.getPlatform ? window.Capacitor.getPlatform() : "web";
+    // BiometryType: 1 = TouchId, 2 = FaceId, 3 = Fingerprint, 4 = FaceAuthentication
+    isFaceIdDevice = platform === "ios" && info.biometryType !== 1;
+
+    const biometricSection = document.getElementById("biometricSection");
+    const biometricLabel = document.getElementById("biometricLabel");
+    const biometricIcon = document.getElementById("biometricIcon");
+    const biometricBtn = document.getElementById("biometricBtn");
+
+    if (biometricSection && biometricLabel && biometricIcon) {
+      if (isFaceIdDevice) {
+        biometricLabel.textContent = "Log in with Face ID";
+        biometricIcon.textContent = "\uD83D\uDC64";
+      } else {
+        biometricLabel.textContent = "Log in with Fingerprint";
+        biometricIcon.textContent = "\uD83D\uDC46";
+      }
+      biometricSection.style.display = "block";
+    }
+
+    if (biometricBtn) {
+      biometricBtn.addEventListener("click", handleBiometricLogin);
+    }
+
+    // If biometric login was previously enabled and credentials saved, auto-prompt once
+    const enabled = localStorage.getItem("wm_biometric_enabled");
+    if (enabled === "true") {
+      setTimeout(handleBiometricLogin, 400);
+    }
+  } catch (err) {
+    console.warn("Biometric check error:", err);
+  }
+}
+
+async function handleBiometricLogin() {
+  clearAlert();
+  const NativeBiometric = window.Capacitor?.Plugins?.NativeBiometric;
+  if (!NativeBiometric || !isBiometricAvailable) return;
+
+  try {
+    await NativeBiometric.verifyIdentity({
+      reason: isFaceIdDevice
+        ? "Scan your face to log in to WaterMate"
+        : "Scan your fingerprint to log in to WaterMate",
+      title: isFaceIdDevice ? "Face ID Login" : "Fingerprint Login",
+      subtitle: "Sign in to your WaterMate account",
+      description: "Quick and secure biometric authentication.",
+    });
+
+    const creds = await NativeBiometric.getCredentials({ server: "com.watermate.app" });
+    if (creds && creds.username && creds.password) {
+      const submitBtn = document.getElementById("submitBtn");
+      if (submitBtn) setLoading(submitBtn, true, "Logging in\u2026", "Log in");
+      await Api.login({ email: creds.username, password: creds.password });
+      await routeAfterAuth();
+    } else {
+      showAlert("Please log in with email and password once to enable biometric login for your device.", "error");
+    }
+  } catch (err) {
+    const msg = err?.message || "";
+    if (
+      !msg.toLowerCase().includes("cancel") &&
+      !msg.toLowerCase().includes("cancelled") &&
+      !msg.toLowerCase().includes("fallback")
+    ) {
+      showAlert(msg || "Biometric authentication failed.");
+    }
+  }
+}
+
 const loginForm = document.getElementById("loginForm");
 if (loginForm) {
+  checkBiometrics();
+
   loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     clearAlert();
@@ -46,6 +132,22 @@ if (loginForm) {
     setLoading(submitBtn, true, "Logging in\u2026", "Log in");
     try {
       await Api.login({ email, password });
+
+      // Save credentials for biometric login if native biometrics is available
+      const NativeBiometric = window.Capacitor?.Plugins?.NativeBiometric;
+      if (NativeBiometric && isBiometricAvailable) {
+        try {
+          await NativeBiometric.setCredentials({
+            username: email,
+            password: password,
+            server: "com.watermate.app",
+          });
+          localStorage.setItem("wm_biometric_enabled", "true");
+        } catch (bioErr) {
+          console.warn("Could not save biometric credentials:", bioErr);
+        }
+      }
+
       await routeAfterAuth();
     } catch (err) {
       showAlert(err.message || "Invalid email or password.");
