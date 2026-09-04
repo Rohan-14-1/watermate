@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>History · WaterMate</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar__brand">
+        <span class="topbar__drop"></span>
+        WaterMate
+      </div>
+      <nav class="topbar__nav">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="members.html">Members</a>
+        <a href="history.html" class="is-active">History</a>
+        <a href="group.html">Switch group</a>
+      </nav>
+      <div class="topbar__user" id="userBox"></div>
+    </header>
+
+    <main class="main">
+      <div id="pageAlert"></div>
+
+      <div class="group-heading">
+        <h1>Water history</h1>
+      </div>
+
+      <div id="historyContent">
+        <div class="loading-row"><div class="spinner"></div><span>Loading history&hellip;</span></div>
+      </div>
+
+      <div id="pagination" class="stack-row" style="margin-top:20px;justify-content:center;"></div>
+    </main>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/history.js"></script>
+</body>
+</html>

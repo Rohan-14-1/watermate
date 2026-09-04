@@ -1,0 +1,89 @@
+// WaterMate - Prisma schema
+// Run `npx prisma migrate dev --name init` (from repo root: npm run prisma:migrate)
+// after setting DATABASE_URL in your .env file.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  profileImage String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Groups this user created
+  createdGroups Group[]       @relation("GroupCreator")
+  // Memberships (join table) linking this user to groups
+  memberships   GroupMember[]
+  // Water deliveries this user has completed
+  waterRecords  WaterRecord[]
+
+  @@map("users")
+}
+
+model Group {
+  id         String   @id @default(uuid())
+  name       String
+  inviteCode String   @unique
+  createdBy  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  creator      User          @relation("GroupCreator", fields: [createdBy], references: [id])
+  members      GroupMember[]
+  waterRecords WaterRecord[]
+
+  @@index([createdBy])
+  @@map("groups")
+}
+
+model GroupMember {
+  id        String   @id @default(uuid())
+  groupId   String
+  userId    String
+  // Position in the rotation, starting at 1. Determines turn order.
+  turnOrder Int
+  // Whether this member currently holds the turn. Exactly one member per
+  // group should have isCurrentTurn = true at any time.
+  isCurrentTurn Boolean @default(false)
+  joinedAt  DateTime @default(now())
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // A user cannot join the same group twice.
+  @@unique([groupId, userId])
+  // Turn order positions must be unique within a group.
+  @@unique([groupId, turnOrder])
+  @@index([groupId])
+  @@index([userId])
+  @@map("group_members")
+}
+
+model WaterRecord {
+  id          String   @id @default(uuid())
+  groupId     String
+  userId      String
+  photoUrl    String
+  // Server-generated timestamp - the source of truth for when the delivery
+  // was completed. Never accepted from the client.
+  completedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([groupId])
+  @@index([userId])
+  @@index([completedAt])
+  @@map("water_records")
+}

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WaterMate</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="loading-row" style="min-height:100vh;">
+    <div class="spinner"></div>
+    <span>Loading WaterMate&hellip;</span>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    (async function () {
+      try {
+        await Api.me();
+        const activeGroup = getActiveGroupId();
+        window.location.href = activeGroup ? "dashboard.html" : "group.html";
+      } catch (err) {
+        window.location.href = "login.html";
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+{
+  "name": "watermate",
+  "version": "1.0.0",
+  "description": "Roommate water management system - track whose turn it is to bring drinking water.",
+  "main": "backend/server.js",
+  "scripts": {
+    "dev": "nodemon backend/server.js",
+    "start": "node backend/server.js",
+    "build": "prisma generate --schema=backend/prisma/schema.prisma",
+    "vercel-build": "prisma generate --schema=backend/prisma/schema.prisma",
+    "postinstall": "prisma generate --schema=backend/prisma/schema.prisma",
+    "prisma:generate": "prisma generate --schema=backend/prisma/schema.prisma",
+    "prisma:migrate": "prisma migrate dev --schema=backend/prisma/schema.prisma",
+    "prisma:studio": "prisma studio --schema=backend/prisma/schema.prisma",
+    "seed": "node backend/prisma/seed.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.19.1",
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4",
+    "prisma": "^5.19.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your groups · WaterMate</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar__brand">
+        <span class="topbar__drop"></span>
+        WaterMate
+      </div>
+      <div class="topbar__user" id="userBox"></div>
+    </header>
+
+    <main class="main">
+      <div id="pageAlert"></div>
+
+      <h1>Your groups</h1>
+      <p class="text-muted">Pick a group to open its dashboard, or set up a new one.</p>
+
+      <div id="groupsSection">
+        <div class="loading-row"><div class="spinner"></div><span>Loading your groups&hellip;</span></div>
+      </div>
+
+      <div class="section-title">CREATE OR JOIN A GROUP</div>
+      <div class="two-col">
+        <div class="card">
+          <h3>Create a group</h3>
+          <p class="text-muted">Start a rotation for your flat and get an invite code to share.</p>
+          <form id="createGroupForm">
+            <div class="field">
+              <label for="groupName">Group name</label>
+              <input type="text" id="groupName" placeholder="Sunrise Apartment" required />
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="createBtn">Create group</button>
+          </form>
+          <div id="createResult"></div>
+        </div>
+
+        <div class="card">
+          <h3>Join a group</h3>
+          <p class="text-muted">Enter the invite code a roommate shared with you.</p>
+          <form id="joinGroupForm">
+            <div class="field">
+              <label for="inviteCode">Invite code</label>
+              <input type="text" id="inviteCode" placeholder="WM4821" style="text-transform:uppercase" required />
+            </div>
+            <button type="submit" class="btn btn-outline btn-block" id="joinBtn">Join group</button>
+          </form>
+          <div id="joinResult"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/group.js"></script>
+</body>
+</html>
