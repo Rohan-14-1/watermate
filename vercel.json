@@ -2,7 +2,7 @@
   "outputDirectory": "public",
   "functions": {
     "api/index.js": {
-      "includeFiles": "backend/prisma/schema.prisma"
+      "includeFiles": "backend/prisma/**"
     }
   },
   "rewrites": [

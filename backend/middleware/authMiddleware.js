@@ -19,9 +19,10 @@ async function requireAuth(req, res, next) {
       return res.status(401).json({ message: "Please log in to continue." });
     }
 
+    const jwtSecret = process.env.JWT_SECRET || "watermate-fallback-jwt-secret";
     let payload;
     try {
-      payload = jwt.verify(token, process.env.JWT_SECRET);
+      payload = jwt.verify(token, jwtSecret);
     } catch (err) {
       return res
         .status(401)

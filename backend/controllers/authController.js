@@ -8,8 +8,10 @@ const COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+const JWT_SECRET = process.env.JWT_SECRET || "watermate-fallback-jwt-secret";
+
 function signToken(userId) {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, {
+  return jwt.sign({ userId }, JWT_SECRET, {
     expiresIn: TOKEN_EXPIRY,
   });
 }

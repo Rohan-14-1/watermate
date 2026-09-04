@@ -182,3 +182,16 @@ caller is a member of the group before returning any data.
 - Uploaded photos are validated for MIME type (JPG/PNG/WebP) and size
   (5MB max) before being written to disk.
 - Prisma parameterizes all queries, preventing SQL injection.
+
+## Deploying to Vercel
+
+1. **Create a Cloud PostgreSQL Database**:
+   Vercel runs serverless functions and does not host a local database server. Set up a free cloud PostgreSQL database on [Neon](https://neon.tech), [Supabase](https://supabase.com), or [Vercel Postgres](https://vercel.com/docs/storage/vercel-postgres).
+
+2. **Add Environment Variables in Vercel**:
+   Go to your Vercel Project Dashboard → **Settings** → **Environment Variables**:
+   - `DATABASE_URL`: Your hosted PostgreSQL connection URI (e.g. `postgresql://user:pass@ep-xyz.neon.tech/watermate?sslmode=require`)
+   - `JWT_SECRET`: A long random secret string for JWT authentication
+
+3. **Deploy**:
+   When Vercel builds the project, it automatically runs Prisma migrations and generates the Prisma client. You can verify your connection at any time by visiting `https://your-domain.vercel.app/api/health`.

@@ -44,21 +44,101 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(FRONTEND_DIR, "index.html"));
 });
 
+// Health check & diagnostic endpoint
+app.get("/api/health", async (req, res) => {
+  const dbUrl = process.env.DATABASE_URL;
+  const isLocalhost = !dbUrl || dbUrl.includes("localhost") || dbUrl.includes("127.0.0.1");
+
+  const response = {
+    status: "ok",
+    environment: process.env.NODE_ENV || "development",
+    isVercel: Boolean(process.env.VERCEL),
+    database: {
+      configured: Boolean(dbUrl),
+      isLocalhost,
+      connected: false,
+    },
+    jwtSecretConfigured: Boolean(process.env.JWT_SECRET),
+  };
+
+  if (!dbUrl) {
+    response.status = "error";
+    response.database.message = "DATABASE_URL environment variable is missing in Vercel settings.";
+    return res.status(503).json(response);
+  }
+
+  if (process.env.VERCEL && isLocalhost) {
+    response.status = "error";
+    response.database.message =
+      "DATABASE_URL is set to localhost. Vercel serverless functions cannot connect to localhost. Please connect a hosted PostgreSQL database (such as Neon, Supabase, or Railway) in Vercel Project Settings > Environment Variables.";
+    return res.status(503).json(response);
+  }
+
+  try {
+    const prisma = require("./prisma/client");
+    await prisma.$queryRaw`SELECT 1`;
+    response.database.connected = true;
+    return res.json(response);
+  } catch (err) {
+    response.status = "error";
+    response.database.connected = false;
+    response.database.message = err.message;
+    response.database.code = err.code || null;
+    return res.status(500).json(response);
+  }
+});
+
 // 404 for unmatched API routes
 app.use("/api", (req, res) => {
   res.status(404).json({ message: "Not found." });
 });
 
-// Central error handler - never leak raw database/internal error details
+// Central error handler
 app.use((err, req, res, next) => {
-  console.error(err);
+  console.error("Server error:", err);
 
   if (err?.code === "P2002") {
     return res.status(409).json({ message: "That value is already in use." });
   }
 
+  const dbUrl = process.env.DATABASE_URL;
+  const isPrismaError =
+    err?.name === "PrismaClientInitializationError" ||
+    err?.name === "PrismaClientKnownRequestError" ||
+    err?.name === "PrismaClientRustPanicError" ||
+    err?.code?.startsWith("P1") ||
+    err?.code?.startsWith("P2");
+
+  if (isPrismaError) {
+    if (!dbUrl) {
+      return res.status(503).json({
+        message: "Database not configured: DATABASE_URL is missing in Vercel Environment Variables.",
+      });
+    }
+
+    if (process.env.VERCEL && (dbUrl.includes("localhost") || dbUrl.includes("127.0.0.1"))) {
+      return res.status(503).json({
+        message: "Database error: DATABASE_URL is set to localhost. Vercel cannot reach your local computer. Please connect a hosted PostgreSQL database (e.g. Neon or Supabase).",
+      });
+    }
+
+    if (err?.code === "P1001" || err?.code === "P1000") {
+      return res.status(503).json({
+        message: "Database connection failed. Please verify your cloud database credentials and that it is active.",
+      });
+    }
+
+    if (err?.code === "P2021") {
+      return res.status(503).json({
+        message: "Database tables are missing. Migrations will be applied automatically on your next Vercel deployment.",
+      });
+    }
+  }
+
   res.status(err.status || 500).json({
-    message: "Unable to complete your request. Please try again.",
+    message: err.status
+      ? err.message
+      : "Unable to complete your request. Please try again.",
   });
 });
 
