@@ -162,10 +162,11 @@ function openSubmitModal() {
     <div id="modalAlert"></div>
     <label class="photo-drop" id="photoDrop">
       <div id="photoDropLabel">
-        <div style="font-size:1.6rem;margin-bottom:6px;">\ud83d\udcf7</div>
-        Choose a photo of the water<br /><span class="text-muted" style="font-size:0.8rem;">JPG, PNG, or WebP \u00b7 up to 5MB</span>
+        <div style="font-size:1.8rem;margin-bottom:6px;">📸</div>
+        <strong>Snap or choose a photo of the water</strong><br />
+        <span class="text-muted" style="font-size:0.8rem;">JPG, PNG, or WebP &middot; up to 5MB</span>
       </div>
-      <input type="file" id="photoInput" accept="image/jpeg,image/png,image/webp" />
+      <input type="file" id="photoInput" accept="image/*,image/jpeg,image/png,image/webp" />
     </label>
     <div id="previewBox"></div>
     <button class="btn btn-accent btn-block" id="submitWaterBtn" style="margin-top:18px;" disabled>Submit water</button>

@@ -41,14 +41,24 @@ function renderMembers() {
         .map(
           (m, idx) => `
         <li class="member-row" draggable="${isAdmin}" data-member-id="${m.id}" data-index="${idx}">
-          ${isAdmin ? `<span class="member-row__handle" title="Drag to reorder">\u2630</span>` : ""}
+          ${
+            isAdmin
+              ? `
+            <div class="member-row__reorder-btns">
+              <button type="button" class="btn-icon" data-move-up="${idx}" title="Move up" ${idx === 0 ? "disabled" : ""}>▲</button>
+              <button type="button" class="btn-icon" data-move-down="${idx}" title="Move down" ${idx === members.length - 1 ? "disabled" : ""}>▼</button>
+            </div>
+            <span class="member-row__handle" title="Drag to reorder">&#x2630;</span>
+          `
+              : ""
+          }
           <span class="member-row__order">${idx + 1}</span>
           <span class="member-row__name">
             <div class="name">${escapeHtml(m.name)}</div>
             <div class="email">${escapeHtml(m.email)}</div>
           </span>
           ${m.isCurrentTurn ? `<span class="badge badge-next">Next</span>` : ""}
-          ${isAdmin ? `<button class="btn-link" data-remove="${m.id}" style="color:#b3432f;">Remove</button>` : ""}
+          ${isAdmin ? `<button class="btn-link" data-remove="${m.id}" style="color:#b3432f;margin-left:auto;">Remove</button>` : ""}
         </li>
       `
         )
@@ -58,6 +68,26 @@ function renderMembers() {
 
   if (isAdmin) {
     attachDragHandlers();
+    el.querySelectorAll("[data-move-up]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const i = Number(btn.dataset.moveUp);
+        if (i <= 0) return;
+        const [moved] = members.splice(i, 1);
+        members.splice(i - 1, 0, moved);
+        renderMembers();
+        showSaveBar();
+      });
+    });
+    el.querySelectorAll("[data-move-down]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const i = Number(btn.dataset.moveDown);
+        if (i >= members.length - 1) return;
+        const [moved] = members.splice(i, 1);
+        members.splice(i + 1, 0, moved);
+        renderMembers();
+        showSaveBar();
+      });
+    });
     el.querySelectorAll("[data-remove]").forEach((btn) => {
       btn.addEventListener("click", () => handleRemove(btn.dataset.remove));
     });

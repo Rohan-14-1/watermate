@@ -416,7 +416,112 @@ img {
   margin: 30px 0 12px;
 }
 
-@media (max-width: 640px) {
-  .topbar__nav { gap: 12px; }
-  .main { padding: 20px 16px 48px; }
+/* ---------- Mobile & Responsive Improvements ---------- */
+.bottom-nav {
+  display: none;
 }
+
+@media (max-width: 768px) {
+  .topbar {
+    padding: 12px 18px;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  /* Desktop top links move to the sleek bottom nav on mobile */
+  .topbar__nav {
+    display: none;
+  }
+
+  .topbar__brand {
+    font-size: 1.18rem;
+  }
+
+  .topbar__user {
+    gap: 8px;
+  }
+
+  /* Leave safe room above the bottom navigation bar */
+  .main {
+    padding: 18px 16px calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Fixed App-Style Bottom Navigation Bar */
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-top: 1px solid var(--border);
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+    justify-content: space-around;
+    align-items: center;
+    box-shadow: 0 -4px 20px rgba(11, 59, 69, 0.06);
+  }
+
+  .bottom-nav__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    text-decoration: none;
+    color: var(--ink-soft);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 12px;
+    transition: all 0.15s ease;
+    min-width: 58px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .bottom-nav__item:hover,
+  .bottom-nav__item:active {
+    text-decoration: none;
+    color: var(--ocean-900);
+  }
+
+  .bottom-nav__item.is-active {
+    color: var(--teal-600);
+  }
+
+  .bottom-nav__item.is-active .bottom-nav__icon {
+    stroke: var(--teal-600);
+    transform: translateY(-1px);
+  }
+
+  .bottom-nav__icon {
+    width: 22px;
+    height: 22px;
+    stroke: var(--ink-soft);
+    transition: transform 0.15s ease, stroke 0.15s ease;
+  }
+
+  /* Prevent auto-zooming in iOS Safari by requiring minimum 16px text on mobile inputs */
+  .field input,
+  .field select {
+    font-size: 16px !important;
+    min-height: 48px;
+  }
+
+  .btn {
+    min-height: 46px;
+    font-size: 0.96rem;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.35rem; }
+  .card { padding: 18px 16px; }
+}
+

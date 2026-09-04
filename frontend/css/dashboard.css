@@ -123,9 +123,25 @@
 
 @media (max-width: 640px) {
   .stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .stat-card {
+    padding: 12px 8px;
+    text-align: center;
+    border-radius: var(--radius-sm);
+  }
+  .stat-card .value {
+    font-size: 1.35rem;
+  }
+  .stat-card .label {
+    font-size: 0.72rem;
+    margin-top: 4px;
+    line-height: 1.2;
   }
 }
+
 
 /* ---------- Last delivery ---------- */
 
@@ -509,3 +525,172 @@
   font-size: 1.2rem;
   color: var(--ocean-900);
 }
+
+/* ---------- Touch Reorder Buttons (members.html) ---------- */
+.member-row__reorder-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-right: 2px;
+}
+
+.btn-icon {
+  background: var(--foam-50);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--ink-soft);
+  width: 28px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  padding: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 0.12s ease;
+}
+
+.btn-icon:hover:not(:disabled) {
+  background: var(--teal-100);
+  color: var(--teal-600);
+  border-color: var(--teal-500);
+}
+
+.btn-icon:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+/* ---------- Mobile Layout & Touch Adjustments ---------- */
+@media (max-width: 640px) {
+  .turn-hero {
+    padding: 24px 18px;
+    border-radius: 20px;
+  }
+
+  .turn-hero__eyebrow {
+    font-size: 0.76rem;
+    margin-bottom: 10px;
+  }
+
+  .turn-hero__person {
+    font-size: 1.85rem;
+  }
+
+  .turn-hero__sub {
+    font-size: 0.92rem;
+    margin-bottom: 18px;
+  }
+
+  .turn-hero .stack-row {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .turn-hero .btn {
+    width: 100%;
+  }
+
+  /* Smooth touch momentum scroll for queue */
+  .queue {
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    padding-bottom: 8px;
+  }
+
+  .queue::-webkit-scrollbar {
+    display: none;
+  }
+
+  .queue__item {
+    scroll-snap-align: center;
+    min-width: 84px;
+  }
+
+  .queue__marker {
+    width: 38px;
+    height: 38px;
+    font-size: 0.78rem;
+  }
+
+  .queue__name {
+    max-width: 78px;
+    font-size: 0.78rem;
+  }
+
+  .queue__item:not(:last-child)::after {
+    top: 19px;
+    left: calc(50% + 24px);
+    width: calc(100% - 14px);
+  }
+
+  /* Member rows on mobile */
+  .member-row {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .member-row__name .name {
+    font-size: 0.95rem;
+  }
+
+  .member-row__name .email {
+    font-size: 0.76rem;
+  }
+
+  /* History cards on mobile */
+  .history-card {
+    padding: 12px 14px;
+    gap: 12px;
+  }
+
+  .history-card__photo {
+    width: 68px;
+    height: 68px;
+  }
+
+  .history-card__name {
+    font-size: 0.96rem;
+  }
+
+  .history-card__time {
+    font-size: 0.8rem;
+  }
+
+  /* Delivery cards on mobile */
+  .delivery-card {
+    gap: 12px;
+  }
+
+  .delivery-card__photo {
+    width: 64px;
+    height: 64px;
+  }
+
+  /* Bottom sheet modal animation on phones */
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal {
+    border-radius: 22px 22px 0 0;
+    padding: 22px 18px calc(24px + env(safe-area-inset-bottom, 0px));
+    max-width: 100%;
+    max-height: 88vh;
+    animation: modalSlideUp 0.22s ease-out;
+  }
+
+  @keyframes modalSlideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+}
+
