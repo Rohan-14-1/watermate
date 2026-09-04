@@ -4,10 +4,18 @@ console.log("\n=================================");
 console.log("💧 WaterMate Build: Database & Client Setup");
 console.log("=================================\n");
 
+// Ensure DIRECT_URL is available for Prisma migrations if using transaction pooler
+if (!process.env.DIRECT_URL && process.env.DATABASE_URL) {
+  process.env.DIRECT_URL = process.env.DATABASE_URL.replace(":6543", ":5432").replace("?pgbouncer=true", "");
+}
+
 // 1. Generate Prisma Client
 try {
   console.log("Generating Prisma client...");
-  execSync("npx prisma generate --schema=backend/prisma/schema.prisma", { stdio: "inherit" });
+  execSync("npx prisma generate --schema=backend/prisma/schema.prisma", {
+    env: process.env,
+    stdio: "inherit",
+  });
   console.log("Prisma client generated successfully.");
 } catch (err) {
   console.error("Prisma client generation failed:", err.message);
@@ -19,12 +27,12 @@ const dbUrl = process.env.DATABASE_URL;
 if (dbUrl && !dbUrl.includes("localhost") && !dbUrl.includes("127.0.0.1")) {
   console.log("\nRemote DATABASE_URL detected. Applying migrations to database...");
   try {
-    execSync("npx prisma migrate deploy --schema=backend/prisma/schema.prisma", { stdio: "inherit" });
+    execSync("npx prisma migrate deploy --schema=backend/prisma/schema.prisma", { env: process.env, stdio: "inherit" });
     console.log("Database migrations applied successfully.");
   } catch (err) {
     console.warn("prisma migrate deploy failed. Falling back to prisma db push...", err.message);
     try {
-      execSync("npx prisma db push --schema=backend/prisma/schema.prisma --accept-data-loss", { stdio: "inherit" });
+      execSync("npx prisma db push --schema=backend/prisma/schema.prisma --accept-data-loss", { env: process.env, stdio: "inherit" });
       console.log("Database schema pushed successfully.");
     } catch (pushErr) {
       console.warn("Automatic database migration/push could not complete during build:", pushErr.message);
