@@ -1,7 +1,5 @@
 const express = require("express");
 const chatCleanupService = require("../services/chatCleanupService");
-const notificationService = require("../services/notificationService");
-const prisma = require("../prisma/client");
 
 const router = express.Router();
 
@@ -39,37 +37,5 @@ async function handleCleanup(req, res) {
 
 router.get("/cleanup", handleCleanup);
 router.post("/cleanup", handleCleanup);
-
-// GET/POST /api/cron/check-turns - Scheduled turn verification and notification
-async function handleCheckTurns(req, res) {
-  try {
-    const groups = await prisma.group.findMany({
-      select: { id: true },
-    });
-
-    let notifiedCount = 0;
-    for (const g of groups) {
-      try {
-        const notif = await notificationService.syncAndNotifyActiveTurn(g.id);
-        if (notif) notifiedCount++;
-      } catch (e) {
-        console.warn(`[CronCheckTurns] Group ${g.id} turn sync error:`, e.message);
-      }
-    }
-
-    res.json({
-      success: true,
-      timestamp: new Date().toISOString(),
-      groupsChecked: groups.length,
-      turnsNotified: notifiedCount,
-    });
-  } catch (err) {
-    console.error("[CronCheckTurns] Error:", err);
-    res.status(500).json({ success: false, error: err.message });
-  }
-}
-
-router.get("/check-turns", handleCheckTurns);
-router.post("/check-turns", handleCheckTurns);
 
 module.exports = router;

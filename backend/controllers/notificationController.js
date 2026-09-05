@@ -21,9 +21,6 @@ async function listGroupNotifications(req, res, next) {
       }),
     ]);
 
-    // Also trigger self-healing turn notification check in background
-    notificationService.syncAndNotifyActiveTurn(groupId).catch(() => {});
-
     res.json({
       notifications,
       unreadCount,

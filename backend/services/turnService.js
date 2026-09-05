@@ -45,7 +45,7 @@ async function getNextMember(groupId, currentTurnOrder) {
  * left with zero or two members simultaneously marked as current.
  */
 async function advanceTurn(groupId) {
-  const result = await prisma.$transaction(async (tx) => {
+  return prisma.$transaction(async (tx) => {
     const current = await tx.groupMember.findFirst({
       where: { groupId, isCurrentTurn: true },
     });
@@ -84,13 +84,6 @@ async function advanceTurn(groupId) {
       include: { user: true },
     });
   });
-
-  try {
-    const notificationService = require("./notificationService");
-    notificationService.syncAndNotifyActiveTurn(groupId).catch(() => {});
-  } catch (e) {}
-
-  return result;
 }
 
 /**
