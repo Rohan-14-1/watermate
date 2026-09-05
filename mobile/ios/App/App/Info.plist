@@ -25,13 +25,17 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>WaterMate needs access to your camera to take photos of water deliveries.</string>
+	<string>WaterMate needs access to your camera to take photos of water deliveries and share media in team chat.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>WaterMate uses Face ID to quickly and securely log you into your account.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>WaterMate needs access to save delivery photos to your library.</string>
+	<string>WaterMate needs access to save delivery and chat photos to your library.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>WaterMate needs access to your photo library to select photos of water deliveries.</string>
+	<string>WaterMate needs access to your photo library to select photos of water deliveries and share media in team chat.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

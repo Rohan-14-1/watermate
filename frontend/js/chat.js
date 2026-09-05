@@ -29,6 +29,13 @@
   const chatSendAlertBtn = document.getElementById("chatSendAlertBtn");
   const pageAlert = document.getElementById("pageAlert");
 
+  // Attachment modal elements
+  const chatAttachModal = document.getElementById("chatAttachModal");
+  const chatAttachClose = document.getElementById("chatAttachClose");
+  const chatAttachCameraBtn = document.getElementById("chatAttachCameraBtn");
+  const chatAttachGalleryBtn = document.getElementById("chatAttachGalleryBtn");
+  const chatAttachFileBtn = document.getElementById("chatAttachFileBtn");
+
   // State
   let selectedFile = null;
   let messages = [];
@@ -66,14 +73,77 @@
     userAtBottom = distanceToBottom < threshold;
   });
 
-  // Attach button triggers file input
+  // Attachment Modal Helpers
+  function openAttachModal() {
+    if (chatAttachModal) chatAttachModal.hidden = false;
+  }
+
+  function closeAttachModal() {
+    if (chatAttachModal) chatAttachModal.hidden = true;
+  }
+
+  // Attach button triggers attachment options modal
   chatAttachBtn.addEventListener("click", () => {
-    chatFileInput.click();
+    openAttachModal();
   });
 
-  // File selection
-  chatFileInput.addEventListener("change", () => {
-    const file = chatFileInput.files[0];
+  if (chatAttachClose) {
+    chatAttachClose.addEventListener("click", closeAttachModal);
+  }
+
+  if (chatAttachModal) {
+    chatAttachModal.addEventListener("click", (e) => {
+      if (e.target === chatAttachModal) closeAttachModal();
+    });
+  }
+
+  async function captureWithCamera(sourceType) {
+    closeAttachModal();
+    const Camera = window.Capacitor?.Plugins?.Camera;
+    if (Camera) {
+      try {
+        const image = await Camera.getPhoto({
+          quality: 85,
+          allowEditing: false,
+          resultType: "uri",
+          source: sourceType === "PHOTOS" ? "PHOTOS" : "CAMERA",
+        });
+
+        if (image && image.webPath) {
+          const response = await fetch(image.webPath);
+          const blob = await response.blob();
+          const ext = image.format || "jpg";
+          const file = new File([blob], `chat_${Date.now()}.${ext}`, {
+            type: blob.type || "image/jpeg",
+          });
+          handleFileSelected(file);
+        }
+      } catch (err) {
+        if (!err?.message?.includes("User cancelled")) {
+          console.warn("Camera error in chat:", err);
+        }
+      }
+    } else {
+      chatFileInput.click();
+    }
+  }
+
+  if (chatAttachCameraBtn) {
+    chatAttachCameraBtn.addEventListener("click", () => captureWithCamera("CAMERA"));
+  }
+
+  if (chatAttachGalleryBtn) {
+    chatAttachGalleryBtn.addEventListener("click", () => captureWithCamera("PHOTOS"));
+  }
+
+  if (chatAttachFileBtn) {
+    chatAttachFileBtn.addEventListener("click", () => {
+      closeAttachModal();
+      chatFileInput.click();
+    });
+  }
+
+  function handleFileSelected(file) {
     if (!file) return;
 
     // Check size limit: 15MB
@@ -89,6 +159,12 @@
     chatFileSize.textContent = formatBytes(file.size);
     chatFilePreview.style.display = "flex";
     updateSendButtonState();
+  }
+
+  // File selection via input[type=file]
+  chatFileInput.addEventListener("change", () => {
+    const file = chatFileInput.files[0];
+    if (file) handleFileSelected(file);
   });
 
   // Remove attachment

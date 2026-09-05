@@ -413,13 +413,29 @@
 
     try {
       let permStatus = await PushNotifications.checkPermissions();
-      if (permStatus.receive === "prompt") {
+      if (permStatus.receive === "prompt" || permStatus.receive === "prompt-with-rationale") {
         permStatus = await PushNotifications.requestPermissions();
       }
 
       if (permStatus.receive !== "granted") {
-        console.log("[Push] Permission not granted for push notifications");
+        console.log("[Push] Permission not granted for push notifications:", permStatus.receive);
         return;
+      }
+
+      // Create Android Notification Channels (required for Android 8+)
+      if (window.Capacitor.getPlatform() === "android") {
+        try {
+          await PushNotifications.createChannel({
+            id: "water_turns",
+            name: "Water Turn Alerts",
+            description: "Alerts when it is your turn to bring drinking water",
+            importance: 5,
+            visibility: 1,
+            vibration: true,
+          });
+        } catch (channelErr) {
+          console.warn("[Push] Android channel setup warning:", channelErr);
+        }
       }
 
       await PushNotifications.register();

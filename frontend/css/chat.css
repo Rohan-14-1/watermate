@@ -423,17 +423,85 @@
   margin-bottom: 8px;
 }
 
+/* Attachment Action Options Modal */
+.chat-attach-modal {
+  max-width: 360px;
+}
+
+.chat-attach-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.chat-attach-opt-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--foam-50, #f0f7f7);
+  border: 1px solid var(--border, #d2e4e4);
+  border-radius: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  color: var(--ink-900, #14282b);
+}
+
+.chat-attach-opt-btn:hover {
+  background: rgba(28, 140, 147, 0.12);
+  border-color: var(--teal-500, #1c8c93);
+  transform: translateY(-1px);
+}
+
+.chat-attach-opt-btn:active {
+  transform: translateY(0);
+}
+
+.chat-attach-opt-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.chat-attach-opt-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-attach-opt-text strong {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.chat-attach-opt-text small {
+  font-size: 0.76rem;
+  color: var(--ink-soft, #567073);
+}
+
 /* Responsive adjustments for phones */
 @media (max-width: 680px) {
+  body:has(.chat-container) .main {
+    padding: 10px 10px calc(72px + env(safe-area-inset-bottom, 0px));
+    height: calc(100dvh - 54px - env(safe-area-inset-top, 0px));
+    overflow: hidden;
+  }
+
   .chat-container {
-    height: calc(100vh - 145px);
+    height: 100%;
     max-height: none;
     border-radius: 14px;
   }
+
   .chat-msg-row {
     max-width: 88%;
   }
+
   .chat-attachment-img {
     max-width: 210px;
   }
 }
+

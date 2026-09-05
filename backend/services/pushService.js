@@ -51,7 +51,12 @@ class PushService {
               },
               body: JSON.stringify({
                 to: token,
-                notification: { title, body, sound: "default" },
+                notification: {
+                  title,
+                  body,
+                  sound: "default",
+                  android_channel_id: "water_turns",
+                },
                 data: { ...data, title, body },
               }),
             });
