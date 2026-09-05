@@ -9,6 +9,10 @@ const authRoutes = require("./routes/authRoutes");
 const groupRoutes = require("./routes/groupRoutes");
 const memberRoutes = require("./routes/memberRoutes");
 const waterRoutes = require("./routes/waterRoutes");
+const chatRoutes = require("./routes/chatRoutes");
+const groupNotificationRoutes = require("./routes/groupNotificationRoutes");
+const deviceRoutes = require("./routes/deviceRoutes");
+const cronRoutes = require("./routes/cronRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,7 +36,11 @@ app.use("/uploads", express.static(UPLOADS_DIR));
 app.use("/api/auth", authRoutes);
 app.use("/api/groups", groupRoutes);
 app.use("/api/groups/:groupId/members", memberRoutes);
+app.use("/api/groups/:groupId/chat", chatRoutes);
+app.use("/api/groups/:groupId/notifications", groupNotificationRoutes);
 app.use("/api/groups/:groupId", waterRoutes);
+app.use("/api/notifications", deviceRoutes);
+app.use("/api/cron", cronRoutes);
 
 // Serve the vanilla HTML/CSS/JS frontend
 const FRONTEND_DIR = fs.existsSync(path.join(__dirname, "..", "public"))
@@ -141,7 +149,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-if (!process.env.VERCEL) {
+if (require.main === module && !process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`WaterMate server running on http://localhost:${PORT}`);
   });

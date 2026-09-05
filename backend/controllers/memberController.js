@@ -130,6 +130,11 @@ async function removeMember(req, res, next) {
       await tx.groupMember.delete({ where: { id: member.id } });
     });
 
+    if (member.isCurrentTurn) {
+      const notificationService = require("../services/notificationService");
+      notificationService.syncAndNotifyActiveTurn(req.group.id).catch(() => {});
+    }
+
     res.json({ message: "Member removed." });
   } catch (err) {
     next(err);

@@ -528,3 +528,317 @@ img {
   .card { padding: 18px 16px; }
 }
 
+/* ============================================================
+   WaterMate 2.0 Notifications & Modal System
+   ============================================================ */
+
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar__icon-btn {
+  position: relative;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.topbar__icon-btn:hover {
+  background: rgba(255, 255, 255, 0.24);
+  transform: translateY(-1px);
+}
+
+.topbar__icon-btn:active {
+  transform: scale(0.95);
+}
+
+.topbar__icon-btn svg {
+  width: 19px;
+  height: 19px;
+  stroke: #ffffff;
+}
+
+.notif-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--coral-500);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--ocean-900);
+  box-shadow: 0 2px 6px rgba(231, 111, 81, 0.6);
+  animation: notifPulse 2s infinite;
+}
+
+@keyframes notifPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+/* Modal Overlay & Modal Window Base (Universal) */
+.wm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 59, 69, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+.wm-modal-overlay[hidden] {
+  display: none;
+  opacity: 0;
+}
+
+.wm-modal {
+  background: var(--paper);
+  border-radius: var(--radius-card);
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 48px -12px rgba(11, 59, 69, 0.35), 0 0 0 1px rgba(11, 59, 69, 0.05);
+  overflow: hidden;
+  animation: modalEnter 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalEnter {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.wm-modal__head {
+  padding: 20px 24px;
+  background: var(--foam-50);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wm-modal__head h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--ocean-900);
+}
+
+.wm-modal__close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--ink-soft);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+}
+
+.wm-modal__close:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--ink);
+}
+
+.wm-modal__body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.wm-modal__footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  background: var(--foam-50);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Notification Center styles */
+.notif-center-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notif-item {
+  display: flex;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid var(--border);
+  position: relative;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.notif-item:hover {
+  border-color: var(--teal-500);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(11, 59, 69, 0.04);
+}
+
+.notif-item.is-unread {
+  background: rgba(215, 236, 236, 0.28);
+  border-color: var(--teal-500);
+}
+
+.notif-item__icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--teal-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.notif-item.is-turn .notif-item__icon {
+  background: rgba(231, 111, 81, 0.15);
+}
+
+.notif-item__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notif-item__title {
+  font-weight: 600;
+  font-size: 0.93rem;
+  color: var(--ocean-900);
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.notif-item__unread-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--coral-500);
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.notif-item__body {
+  font-size: 0.86rem;
+  color: var(--ink);
+  line-height: 1.4;
+  margin-bottom: 6px;
+  word-break: break-word;
+}
+
+.notif-item__time {
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+}
+
+.notif-empty {
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--ink-soft);
+}
+
+.notif-empty__icon {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+  opacity: 0.8;
+}
+
+/* Send Team Notification Form */
+.send-notif-form .field {
+  margin-bottom: 16px;
+}
+
+.send-notif-form label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--ocean-900);
+  margin-bottom: 6px;
+}
+
+.send-notif-form input,
+.send-notif-form select,
+.send-notif-form textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  background: #fff;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.send-notif-form textarea {
+  resize: vertical;
+  min-height: 85px;
+}
+
+.send-notif-form input:focus,
+.send-notif-form select:focus,
+.send-notif-form textarea:focus {
+  border-color: var(--teal-500);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(42, 167, 174, 0.2);
+}
+
+@media (max-width: 600px) {
+  .wm-modal {
+    max-height: 90vh;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    margin-top: auto;
+  }
+  .wm-modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+}
+
+

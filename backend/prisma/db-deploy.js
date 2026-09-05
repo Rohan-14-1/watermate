@@ -30,14 +30,8 @@ if (dbUrl && !dbUrl.includes("localhost") && !dbUrl.includes("127.0.0.1")) {
     execSync("npx prisma migrate deploy --schema=backend/prisma/schema.prisma", { env: process.env, stdio: "inherit" });
     console.log("Database migrations applied successfully.");
   } catch (err) {
-    console.warn("prisma migrate deploy failed. Falling back to prisma db push...", err.message);
-    try {
-      execSync("npx prisma db push --schema=backend/prisma/schema.prisma --accept-data-loss", { env: process.env, stdio: "inherit" });
-      console.log("Database schema pushed successfully.");
-    } catch (pushErr) {
-      console.warn("Automatic database migration/push could not complete during build:", pushErr.message);
-      console.warn("Please verify that your database allows connections from Vercel build servers.");
-    }
+    console.warn("Prisma migrate deploy encountered an issue:", err.message);
+    console.warn("Zero-destructive policy: Not running db push. Please review pending migrations.");
   }
 } else {
   console.log("\nℹ️  Notice: No remote DATABASE_URL provided (or set to localhost).");

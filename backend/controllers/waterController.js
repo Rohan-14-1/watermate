@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const prisma = require("../prisma/client");
 const { completeTurn } = require("../services/turnService");
+const notificationService = require("../services/notificationService");
 
 function serializeRecord(record) {
   return {
@@ -52,6 +53,11 @@ async function submitWater(req, res, next) {
     const record = await prisma.waterRecord.findUnique({
       where: { id: result.record.id },
       include: { user: true },
+    });
+
+    // Idempotently notify the member whose turn just arrived
+    notificationService.syncAndNotifyActiveTurn(req.group.id).catch((notifErr) => {
+      console.warn("[submitWater] Push notification warning:", notifErr.message);
     });
 
     res.status(201).json({
@@ -146,6 +152,9 @@ async function getDashboard(req, res, next) {
     const contributionByUserId = new Map(
       contributionCounts.map((c) => [c.userId, c._count._all])
     );
+
+    // Opportunistically ensure active turn holder has been notified (idempotent)
+    notificationService.syncAndNotifyActiveTurn(groupId).catch(() => {});
 
     res.json({
       group: { id: req.group.id, name: req.group.name, inviteCode: req.group.inviteCode },

@@ -125,6 +125,7 @@ async function apiUpload(url, formData) {
 }
 
 const Api = {
+  resolveMediaUrl,
   // Auth
   register: async (payload) => {
     const data = await apiRequest("/auth/register", {
@@ -188,6 +189,53 @@ const Api = {
     apiRequest(`/groups/${groupId}/water?page=${page}`),
   getLatest: (groupId) => apiRequest(`/groups/${groupId}/water/latest`),
   getDashboard: (groupId) => apiRequest(`/groups/${groupId}/dashboard`),
+
+  // Chat (WaterMate 2.0)
+  getChatMessages: (groupId, params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiRequest(`/groups/${groupId}/chat${query ? `?${query}` : ""}`);
+  },
+  sendChatMessage: (groupId, content, file) => {
+    if (file) {
+      const formData = new FormData();
+      if (content) formData.append("content", content);
+      formData.append("file", file);
+      return apiUpload(`/groups/${groupId}/chat`, formData);
+    }
+    return apiRequest(`/groups/${groupId}/chat`, {
+      method: "POST",
+      body: JSON.stringify({ content }),
+    });
+  },
+
+  // Notifications (WaterMate 2.0)
+  listNotifications: (groupId, page = 1) =>
+    apiRequest(`/groups/${groupId}/notifications?page=${page}`),
+  sendManualNotification: (groupId, payload) =>
+    apiRequest(`/groups/${groupId}/notifications`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  markNotificationRead: (groupId, notifId) =>
+    apiRequest(`/groups/${groupId}/notifications/${notifId}/read`, {
+      method: "POST",
+    }),
+  markAllNotificationsRead: (groupId) =>
+    apiRequest(`/groups/${groupId}/notifications/read-all`, {
+      method: "POST",
+    }),
+
+  // Device push tokens
+  registerDevice: (token, platform) =>
+    apiRequest("/notifications/devices", {
+      method: "POST",
+      body: JSON.stringify({ token, platform }),
+    }),
+  unregisterDevice: (token) =>
+    apiRequest("/notifications/devices", {
+      method: "DELETE",
+      body: JSON.stringify({ token }),
+    }),
 };
 
 // --- Small shared helpers used across pages ---

@@ -28,6 +28,12 @@ model User {
   memberships   GroupMember[]
   // Water deliveries this user has completed
   waterRecords  WaterRecord[]
+  // Push device tokens registered for this user
+  devices       UserDevice[]
+  // Notifications received by this user
+  notifications Notification[] @relation("UserNotifications")
+  // Chat messages sent by this user
+  chatMessages  ChatMessage[]  @relation("UserChatMessages")
 
   @@map("users")
 }
@@ -40,9 +46,11 @@ model Group {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  creator      User          @relation("GroupCreator", fields: [createdBy], references: [id])
-  members      GroupMember[]
-  waterRecords WaterRecord[]
+  creator       User           @relation("GroupCreator", fields: [createdBy], references: [id])
+  members       GroupMember[]
+  waterRecords  WaterRecord[]
+  notifications Notification[]
+  chatMessages  ChatMessage[]
 
   @@index([createdBy])
   @@map("groups")
@@ -88,4 +96,91 @@ model WaterRecord {
   @@index([userId])
   @@index([completedAt])
   @@map("water_records")
+}
+
+// -------------------------------------------------------------
+// WaterMate 2.0: Notifications, Devices & Team Chat
+// -------------------------------------------------------------
+
+model UserDevice {
+  id         String   @id @default(uuid())
+  userId     String
+  token      String   @unique
+  platform   String   // "android", "ios", "web"
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  lastSeenAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_devices")
+}
+
+model Notification {
+  id          String    @id @default(uuid())
+  userId      String    // Recipient user
+  groupId     String
+  type        String    // "WATER_TURN", "MANUAL_TEAM"
+  title       String
+  body        String
+  senderId    String?   // null for automatic water turn notifications
+  isRead      Boolean   @default(false)
+  readAt      DateTime?
+  referenceId String?   // turn event key, record id, or message id
+  createdAt   DateTime  @default(now())
+
+  user  User  @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([groupId])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model WaterTurnNotificationLog {
+  id               String   @id @default(uuid())
+  groupId          String
+  userId           String
+  turnEventKey     String   // e.g. "active_<groupId>_<userId>_<date>"
+  notificationType String   // "ACTIVE_TURN", "UPCOMING_REMINDER"
+  sentAt           DateTime @default(now())
+
+  @@unique([groupId, userId, turnEventKey, notificationType])
+  @@index([groupId, userId])
+  @@map("water_turn_notification_logs")
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  groupId   String
+  senderId  String
+  text      String?
+  createdAt DateTime @default(now())
+  expiresAt DateTime // Server calculated: createdAt + 7 days
+
+  group       Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sender      User             @relation("UserChatMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  attachments ChatAttachment[]
+
+  @@index([groupId, createdAt])
+  @@index([expiresAt])
+  @@map("chat_messages")
+}
+
+model ChatAttachment {
+  id          String   @id @default(uuid())
+  messageId   String
+  fileName    String
+  fileType    String   // "IMAGE", "VIDEO", "DOCUMENT"
+  mimeType    String
+  fileSize    Int
+  storagePath String   // Persistent object storage reference/path
+  createdAt   DateTime @default(now())
+
+  message ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@map("chat_attachments")
 }
