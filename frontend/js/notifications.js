@@ -433,13 +433,20 @@
             visibility: 1,
             vibration: true,
           });
+          await PushNotifications.createChannel({
+            id: "team_alerts",
+            name: "Team Announcements",
+            description: "Manual announcements and messages from teammates",
+            importance: 5,
+            visibility: 1,
+            vibration: true,
+          });
         } catch (channelErr) {
           console.warn("[Push] Android channel setup warning:", channelErr);
         }
       }
 
-      await PushNotifications.register();
-
+      // Add listeners before calling register()
       PushNotifications.addListener("registration", async (token) => {
         console.log("[Push] Registered with token:", token.value);
         if (window.Api && window.Api.registerDevice) {
@@ -453,7 +460,7 @@
       });
 
       PushNotifications.addListener("registrationError", (err) => {
-        console.warn("[Push] Registration error:", err.error);
+        console.warn("[Push] Registration error:", err?.error || err);
       });
 
       PushNotifications.addListener("pushNotificationReceived", (notification) => {
@@ -465,6 +472,12 @@
         console.log("[Push] Action performed:", notification);
         openNotificationCenter();
       });
+
+      try {
+        await PushNotifications.register();
+      } catch (regErr) {
+        console.warn("[Push] Push registration call failed:", regErr);
+      }
     } catch (err) {
       console.warn("[Push] Init error:", err);
     }
