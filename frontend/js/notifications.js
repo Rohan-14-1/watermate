@@ -258,22 +258,23 @@
 
       listEl.innerHTML = data.notifications
         .map((n) => {
+          const isUnread = !n.isRead;
           const isTurn = n.type === "WATER_TURN";
           const icon = isTurn ? "💧" : "📢";
           const timeAgo = formatTimeAgo(n.createdAt);
-          const unreadClass = n.isRead ? "" : "is-unread";
-          const dot = n.isRead ? "" : `<span class="notif-item__unread-dot"></span>`;
+          const unreadClass = isUnread ? "is-unread" : "";
+          const dot = isUnread ? `<span class="notif-item__unread-dot"></span>` : "";
 
           return `
             <div class="notif-item ${unreadClass} ${isTurn ? "is-turn" : ""}" data-id="${n.id}" data-read="${n.isRead}">
               <div class="notif-item__icon">${icon}</div>
               <div class="notif-item__content">
                 <div class="notif-item__title">
-                  ${escapeHtml(n.title)}
-                  ${isUnread ? `<span class="notif-item__unread-dot"></span>` : ""}
+                  <span>${escapeHtml(n.title)}</span>
+                  ${dot}
                 </div>
                 <div class="notif-item__body">${escapeHtml(n.body)}</div>
-                <div class="notif-item__time">${formatTimeAgo(n.createdAt)}</div>
+                <div class="notif-item__time">${timeAgo}</div>
               </div>
             </div>
           `;
