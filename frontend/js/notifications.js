@@ -30,6 +30,16 @@
     loadUnreadCount();
     setupPushNotifications();
 
+    // Re-sync push device token with server if already stored
+    try {
+      const savedToken = localStorage.getItem("wm_push_device_token");
+      const authToken = localStorage.getItem("wm_auth_token");
+      if (savedToken && authToken && window.Api && window.Api.registerDevice) {
+        const platform = window.Capacitor?.getPlatform() === "ios" ? "IOS" : "ANDROID";
+        window.Api.registerDevice(savedToken, platform).catch(() => {});
+      }
+    } catch (_) {}
+
     // Poll for notifications every 25 seconds if active
     if (!pollInterval) {
       pollInterval = setInterval(loadUnreadCount, 25000);
@@ -506,12 +516,17 @@
       // Add listeners before calling register()
       PushNotifications.addListener("registration", async (token) => {
         console.log("[Push] Registered with token:", token.value);
+        try {
+          localStorage.setItem("wm_push_device_token", token.value);
+        } catch (_) {}
+
         if (window.Api && window.Api.registerDevice) {
           const platform = window.Capacitor.getPlatform() === "ios" ? "IOS" : "ANDROID";
           try {
             await window.Api.registerDevice(token.value, platform);
+            console.log("[Push] Device token registered with backend successfully!");
           } catch (e) {
-            console.warn("[Push] Failed to save device token on server:", e);
+            console.warn("[Push] Failed to save device token on server (will retry upon login):", e);
           }
         }
       });

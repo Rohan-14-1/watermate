@@ -134,6 +134,11 @@ const Api = {
     });
     if (data.token && typeof localStorage !== "undefined") {
       localStorage.setItem("wm_auth_token", data.token);
+      const savedPush = localStorage.getItem("wm_push_device_token");
+      if (savedPush && window.Capacitor) {
+        const platform = window.Capacitor.getPlatform() === "ios" ? "IOS" : "ANDROID";
+        Api.registerDevice(savedPush, platform).catch(() => {});
+      }
     }
     return data;
   },
@@ -144,6 +149,11 @@ const Api = {
     });
     if (data.token && typeof localStorage !== "undefined") {
       localStorage.setItem("wm_auth_token", data.token);
+      const savedPush = localStorage.getItem("wm_push_device_token");
+      if (savedPush && window.Capacitor) {
+        const platform = window.Capacitor.getPlatform() === "ios" ? "IOS" : "ANDROID";
+        Api.registerDevice(savedPush, platform).catch(() => {});
+      }
     }
     return data;
   },

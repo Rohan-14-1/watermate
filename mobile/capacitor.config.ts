@@ -14,7 +14,7 @@ const config: CapacitorConfig = {
       presentationStyle: 'fullscreen'
     },
     PushNotifications: {
-      presentationOptions: ['badge', 'sound', 'alert']
+      presentationOptions: ['badge', 'sound', 'alert', 'banner', 'list']
     }
   }
 };
