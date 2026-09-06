@@ -257,6 +257,14 @@ const Api = {
     }),
 };
 
+// Global export for Web, Android, and iOS Capacitor environments
+if (typeof window !== "undefined") {
+  window.Api = Api;
+}
+if (typeof globalThis !== "undefined") {
+  globalThis.Api = Api;
+}
+
 // --- Small shared helpers used across pages ---
 
 function getActiveGroupId() {

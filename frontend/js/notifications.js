@@ -10,6 +10,12 @@
   let unreadCount = 0;
   let groupMembers = [];
 
+  function getApi() {
+    if (typeof window !== "undefined" && window.Api) return window.Api;
+    if (typeof Api !== "undefined") return Api;
+    return null;
+  }
+
   // Initialize once DOM is ready
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initNotificationManager);
@@ -176,10 +182,11 @@
 
   async function loadUnreadCount() {
     activeGroupId = localStorage.getItem("wm_active_group");
-    if (!activeGroupId || !window.Api) return;
+    const api = getApi();
+    if (!activeGroupId || !api || typeof api.listNotifications !== "function") return;
 
     try {
-      const data = await window.Api.listNotifications(activeGroupId, 1);
+      const data = await api.listNotifications(activeGroupId, 1);
       unreadCount = data.unreadCount || 0;
       updateBadgeUI();
     } catch (err) {
@@ -262,33 +269,34 @@
               <div class="notif-item__icon">${icon}</div>
               <div class="notif-item__content">
                 <div class="notif-item__title">
-                  <span>${escapeHtml(n.title)}</span>
-                  ${dot}
+                  ${escapeHtml(n.title)}
+                  ${isUnread ? `<span class="notif-item__unread-dot"></span>` : ""}
                 </div>
                 <div class="notif-item__body">${escapeHtml(n.body)}</div>
-                <div class="notif-item__time">${timeAgo}</div>
+                <div class="notif-item__time">${formatTimeAgo(n.createdAt)}</div>
               </div>
             </div>
           `;
         })
         .join("");
 
-      // Bind individual click to mark as read
-      listEl.querySelectorAll(".notif-item").forEach((item) => {
-        item.addEventListener("click", async () => {
-          const notifId = item.getAttribute("data-id");
-          const isRead = item.getAttribute("data-read") === "true";
+      // Bind click on items to mark as read
+      listEl.querySelectorAll(".notif-item").forEach((el) => {
+        el.addEventListener("click", async () => {
+          const id = el.getAttribute("data-id");
+          const isRead = el.getAttribute("data-read") === "true";
           if (!isRead) {
+            el.classList.remove("is-unread");
+            el.setAttribute("data-read", "true");
+            const dot = el.querySelector(".notif-item__unread-dot");
+            if (dot) dot.remove();
+            unreadCount = Math.max(0, unreadCount - 1);
+            updateBadgeUI();
             try {
-              await window.Api.markNotificationRead(activeGroupId, notifId);
-              item.classList.remove("is-unread");
-              item.setAttribute("data-read", "true");
-              const dot = item.querySelector(".notif-item__unread-dot");
-              if (dot) dot.remove();
-              unreadCount = Math.max(0, unreadCount - 1);
-              updateBadgeUI();
-            } catch (err) {
-              console.warn("Failed to mark read:", err);
+              const api = getApi();
+              if (api) await api.markNotificationRead(activeGroupId, id);
+            } catch (e) {
+              console.warn("Could not mark notif read on server:", e);
             }
           }
         });
@@ -306,10 +314,11 @@
 
   async function markAllRead() {
     activeGroupId = localStorage.getItem("wm_active_group");
-    if (!activeGroupId || !window.Api) return;
+    const api = getApi();
+    if (!activeGroupId || !api || typeof api.markAllNotificationsRead !== "function") return;
 
     try {
-      await window.Api.markAllNotificationsRead(activeGroupId);
+      await api.markAllNotificationsRead(activeGroupId);
       unreadCount = 0;
       updateBadgeUI();
       const unreadItems = document.querySelectorAll("#wmNotifList .notif-item.is-unread");
@@ -338,9 +347,10 @@
     if (select) {
       select.innerHTML = '<option value="ALL">Entire Team (Everyone)</option>';
       activeGroupId = localStorage.getItem("wm_active_group");
-      if (activeGroupId && window.Api) {
+      const api = getApi();
+      if (activeGroupId && api && typeof api.listMembers === "function") {
         try {
-          const res = await window.Api.listMembers(activeGroupId);
+          const res = await api.listMembers(activeGroupId);
           groupMembers = res.members || [];
           groupMembers.forEach((m) => {
             const opt = document.createElement("option");
@@ -372,6 +382,15 @@
 
     if (!titleVal || !msgVal) return;
 
+    const api = getApi();
+    if (!api || typeof api.sendManualNotification !== "function") {
+      console.error("[Notifications] Api.sendManualNotification is not available");
+      status.style.display = "block";
+      status.style.color = "var(--coral-500)";
+      status.textContent = "Unable to send notification. Please try again.";
+      return;
+    }
+
     submitBtn.disabled = true;
     submitBtn.textContent = "Sending...";
     status.style.display = "none";
@@ -384,20 +403,25 @@
         message: msgVal,
       };
 
-      await window.Api.sendManualNotification(activeGroupId, payload);
+      await api.sendManualNotification(activeGroupId, payload);
 
       status.style.display = "block";
       status.style.color = "var(--success-500)";
-      status.textContent = "Notification sent successfully!";
+      status.textContent = "Notification sent successfully.";
 
       setTimeout(() => {
         closeSendNotificationModal();
         document.getElementById("wmSendNotifForm").reset();
       }, 1000);
     } catch (err) {
+      console.error("[Notifications] Error sending notification:", err);
       status.style.display = "block";
       status.style.color = "var(--coral-500)";
-      status.textContent = err.message || "Failed to send notification.";
+      let displayMsg = "Unable to send notification. Please try again.";
+      if (err && err.message && !err.message.includes("undefined") && !err.message.includes("not an object")) {
+        displayMsg = err.message;
+      }
+      status.textContent = displayMsg;
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = "Send Notification";
