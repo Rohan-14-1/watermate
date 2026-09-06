@@ -183,11 +183,32 @@ async function captureWithCapacitorCamera() {
 
   if (Camera) {
     try {
+      // Request ONLY camera permission on native platforms (never photo library)
+      if (typeof Camera.checkPermissions === "function" && typeof Camera.requestPermissions === "function") {
+        try {
+          const permStatus = await Camera.checkPermissions();
+          if (permStatus?.camera !== "granted") {
+            const requested = await Camera.requestPermissions({ permissions: ["camera"] });
+            if (requested?.camera === "denied") {
+              if (modalAlert) {
+                modalAlert.innerHTML = `<div class="alert alert-error">Camera permission was denied. Please allow camera access in Settings.</div>`;
+              }
+              return;
+            }
+          }
+        } catch (permErr) {
+          console.warn("Camera permission check error:", permErr);
+        }
+      }
+
+      const CameraSource = window.Capacitor?.Plugins?.Camera?.CameraSource || { Camera: "CAMERA" };
+      const CameraResultType = window.Capacitor?.Plugins?.Camera?.CameraResultType || { Uri: "uri" };
+
       const image = await Camera.getPhoto({
+        source: CameraSource.Camera || "CAMERA",
         quality: 80,
+        resultType: CameraResultType.Uri || "uri",
         allowEditing: false,
-        resultType: "uri",
-        source: "CAMERA",
       });
 
       if (image && image.webPath) {
@@ -257,6 +278,13 @@ async function captureWithCapacitorCamera() {
       }
     }
   } else {
+    // Native app must NEVER fall back to a file picker
+    if (isNativeApp()) {
+      if (modalAlert) {
+        modalAlert.innerHTML = `<div class="alert alert-error">Camera is unavailable on this device.</div>`;
+      }
+      return;
+    }
     const photoInput = document.getElementById("photoInput");
     if (photoInput) {
       photoInput.setAttribute("capture", "environment");
