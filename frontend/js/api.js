@@ -199,6 +199,16 @@ const Api = {
   getLatest: (groupId) => apiRequest(`/groups/${groupId}/water/latest`),
   getDashboard: (groupId) => apiRequest(`/groups/${groupId}/dashboard`),
 
+  // Chicken Turn (Independent system)
+  getChickenTurn: (groupId) =>
+    apiRequest(`/groups/${groupId}/chicken`),
+  markChickenDone: (groupId) =>
+    apiRequest(`/groups/${groupId}/chicken/done`, { method: "POST" }),
+  approveChicken: (groupId) =>
+    apiRequest(`/groups/${groupId}/chicken/approve`, { method: "POST" }),
+  getChickenHistory: (groupId, page = 1) =>
+    apiRequest(`/groups/${groupId}/chicken/history?page=${page}`),
+
   // Chat (WaterMate 2.0)
   getChatMessages: (groupId, params = {}) => {
     const query = new URLSearchParams(params).toString();

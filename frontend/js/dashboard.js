@@ -125,6 +125,69 @@ function renderDashboard(data) {
     })
     .join("");
 
+  // Chicken Turn Card Rendering (Completely decoupled from Water Turn)
+  const chicken = data.chickenTurn;
+  let chickenCardHtml = "";
+
+  if (chicken && chicken.currentTurn) {
+    let chickenEyebrow = "🍗 CHICKEN TURN";
+    let chickenTitle = "";
+    let chickenSub = "";
+    let chickenBadge = "";
+    let chickenActionHtml = "";
+    let cardModifier = "";
+
+    if (chicken.status === "WAITING_FOR_APPROVAL") {
+      cardModifier = "is-waiting";
+      chickenEyebrow = "🍗 CHICKEN";
+      const broughtBy = chicken.pendingDelivery?.broughtByName || "A member";
+      chickenTitle = `${escapeHtml(broughtBy)} brought the chicken.`;
+      chickenBadge = `<span class="badge-approval">&#9203; Waiting for approval</span>`;
+
+      if (chicken.canApprove) {
+        chickenSub = `Verify that chicken was brought and approve to advance turn.`;
+        chickenActionHtml = `
+          <button type="button" class="btn btn-primary" id="chickenApproveBtn">
+            &#10003; Approve
+          </button>
+        `;
+      } else {
+        chickenSub = `Waiting for another group member to approve.`;
+      }
+    } else if (chicken.isYourTurn) {
+      cardModifier = "is-your-turn";
+      chickenTitle = "YOUR TURN";
+      chickenSub = "You need to bring chicken.";
+      chickenBadge = `<span class="badge badge-chicken">Your Turn</span>`;
+      chickenActionHtml = `
+        <button type="button" class="btn btn-accent" id="chickenDoneBtn">
+          Done
+        </button>
+      `;
+    } else {
+      const turnName = chicken.currentTurn ? chicken.currentTurn.name : "Member";
+      chickenTitle = escapeHtml(turnName);
+      chickenSub = `${escapeHtml(turnName)} needs to bring chicken.`;
+      chickenBadge = `<span class="badge badge-waiting">In Rotation</span>`;
+    }
+
+    chickenCardHtml = `
+      <div class="chicken-card ${cardModifier}" id="chickenTurnCard">
+        <div class="chicken-card__header">
+          <div class="chicken-card__eyebrow">${chickenEyebrow}</div>
+          <div>${chickenBadge}</div>
+        </div>
+        <div class="chicken-card__content">
+          <div class="chicken-card__info">
+            <div class="chicken-card__title">${chickenTitle}</div>
+            <p class="chicken-card__sub">${chickenSub}</p>
+          </div>
+          ${chickenActionHtml ? `<div class="chicken-card__actions">${chickenActionHtml}</div>` : ""}
+        </div>
+      </div>
+    `;
+  }
+
   el.innerHTML = `
     <div class="group-heading">
       <h1>${escapeHtml(data.group.name)}</h1>
@@ -135,6 +198,8 @@ function renderDashboard(data) {
       <div class="turn-hero__eyebrow">${eyebrow}</div>
       ${heroBody}
     </div>
+
+    ${chickenCardHtml}
 
     <div class="stats-grid">
       <div class="stat-card">
@@ -162,6 +227,38 @@ function renderDashboard(data) {
 
   if (data.isYourTurn) {
     document.getElementById("openSubmitBtn").addEventListener("click", openSubmitModal);
+  }
+
+  const chickenDoneBtn = document.getElementById("chickenDoneBtn");
+  if (chickenDoneBtn) {
+    chickenDoneBtn.addEventListener("click", async () => {
+      chickenDoneBtn.disabled = true;
+      chickenDoneBtn.textContent = "Marking done…";
+      try {
+        await Api.markChickenDone(currentGroupId);
+        await loadDashboard();
+      } catch (err) {
+        pageAlert(err.message || "Failed to mark chicken turn as done.");
+        chickenDoneBtn.disabled = false;
+        chickenDoneBtn.textContent = "Done";
+      }
+    });
+  }
+
+  const chickenApproveBtn = document.getElementById("chickenApproveBtn");
+  if (chickenApproveBtn) {
+    chickenApproveBtn.addEventListener("click", async () => {
+      chickenApproveBtn.disabled = true;
+      chickenApproveBtn.textContent = "Approving…";
+      try {
+        await Api.approveChicken(currentGroupId);
+        await loadDashboard();
+      } catch (err) {
+        pageAlert(err.message || "Failed to approve chicken delivery.");
+        chickenApproveBtn.disabled = false;
+        chickenApproveBtn.textContent = "Approve";
+      }
+    });
   }
 }
 

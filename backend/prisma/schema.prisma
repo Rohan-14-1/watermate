@@ -34,6 +34,10 @@ model User {
   notifications Notification[] @relation("UserNotifications")
   // Chat messages sent by this user
   chatMessages  ChatMessage[]  @relation("UserChatMessages")
+  // Chicken turn relationships
+  chickenTurnsCurrentUser   ChickenTurn[]     @relation("ChickenTurnCurrentUser")
+  chickenDeliveriesBrought  ChickenDelivery[] @relation("ChickenBroughtBy")
+  chickenDeliveriesApproved ChickenDelivery[] @relation("ChickenApprovedBy")
 
   @@map("users")
 }
@@ -46,11 +50,13 @@ model Group {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  creator       User           @relation("GroupCreator", fields: [createdBy], references: [id])
-  members       GroupMember[]
-  waterRecords  WaterRecord[]
-  notifications Notification[]
-  chatMessages  ChatMessage[]
+  creator           User              @relation("GroupCreator", fields: [createdBy], references: [id])
+  members           GroupMember[]
+  waterRecords      WaterRecord[]
+  notifications     Notification[]
+  chatMessages      ChatMessage[]
+  chickenTurn       ChickenTurn?
+  chickenDeliveries ChickenDelivery[]
 
   @@index([createdBy])
   @@map("groups")
@@ -183,4 +189,45 @@ model ChatAttachment {
 
   @@index([messageId])
   @@map("chat_attachments")
+}
+
+// -------------------------------------------------------------
+// Chicken Turn System (Decoupled from Water Turn)
+// -------------------------------------------------------------
+
+model ChickenTurn {
+  id                String   @id @default(uuid())
+  groupId           String   @unique
+  currentUserId     String?
+  status            String   @default("WAITING_FOR_COMPLETION") // WAITING_FOR_COMPLETION, WAITING_FOR_APPROVAL
+  pendingDeliveryId String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  group           Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  currentUser     User?            @relation("ChickenTurnCurrentUser", fields: [currentUserId], references: [id], onDelete: SetNull)
+  pendingDelivery ChickenDelivery? @relation("ChickenTurnPendingDelivery", fields: [pendingDeliveryId], references: [id], onDelete: SetNull)
+
+  @@index([groupId])
+  @@map("chicken_turns")
+}
+
+model ChickenDelivery {
+  id           String    @id @default(uuid())
+  groupId      String
+  broughtById  String
+  approvedById String?
+  status       String    @default("WAITING_FOR_APPROVAL") // WAITING_FOR_APPROVAL, APPROVED
+  completedAt  DateTime  @default(now())
+  approvedAt   DateTime?
+  createdAt    DateTime  @default(now())
+
+  group        Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  broughtBy    User          @relation("ChickenBroughtBy", fields: [broughtById], references: [id], onDelete: Cascade)
+  approvedBy   User?         @relation("ChickenApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  pendingTurns ChickenTurn[] @relation("ChickenTurnPendingDelivery")
+
+  @@index([groupId, createdAt])
+  @@index([groupId, status])
+  @@map("chicken_deliveries")
 }

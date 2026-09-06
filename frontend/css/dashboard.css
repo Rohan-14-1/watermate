@@ -694,3 +694,202 @@
   }
 }
 
+/* ============================================================
+   Chicken Turn System Styles
+   ============================================================ */
+
+.chicken-card {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 24px;
+  margin-top: 20px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 18px -4px rgba(16, 38, 43, 0.05);
+}
+
+.chicken-card.is-your-turn {
+  border-color: rgba(231, 111, 81, 0.35);
+  background: linear-gradient(145deg, #ffffff 0%, #fdf5f2 100%);
+}
+
+.chicken-card.is-waiting {
+  border-color: rgba(244, 162, 97, 0.45);
+  background: linear-gradient(145deg, #ffffff 0%, #fdfaf3 100%);
+}
+
+.chicken-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.chicken-card__eyebrow {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #b9502e;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+}
+
+.chicken-card__content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.chicken-card__info {
+  flex: 1;
+  min-width: 220px;
+}
+
+.chicken-card__title {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 600;
+  color: var(--ocean-900);
+  margin-bottom: 4px;
+}
+
+.chicken-card__sub {
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.chicken-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.badge-chicken {
+  background: #fdf0eb;
+  color: #b9502e;
+  border: 1px solid #f9d8cb;
+}
+
+.badge-approval {
+  background: #fef8eb;
+  color: #b27b14;
+  border: 1px solid #f6e5be;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* History tab switchers */
+.history-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+
+.history-tab {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.history-tab:hover {
+  background: var(--teal-100);
+  color: var(--ocean-900);
+}
+
+.history-tab.is-active {
+  background: var(--ocean-900);
+  color: #ffffff;
+}
+
+/* Chicken History Card */
+.chicken-history-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 18px 20px;
+  margin-bottom: 12px;
+}
+
+.chicken-history-card__icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: #fdf2ee;
+  border: 1px solid #fcded3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+
+.chicken-history-card__body {
+  flex: 1;
+}
+
+.chicken-history-card__title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--ocean-900);
+  margin-bottom: 3px;
+}
+
+.chicken-history-card__meta {
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  margin-bottom: 4px;
+}
+
+.chicken-history-card__approver {
+  font-size: 0.84rem;
+  color: var(--teal-600);
+  font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .chicken-card {
+    padding: 18px;
+  }
+  .chicken-card__content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .chicken-card__actions {
+    width: 100%;
+  }
+  .chicken-card__actions .btn {
+    width: 100%;
+  }
+  .chicken-history-card {
+    gap: 12px;
+    padding: 14px;
+  }
+  .chicken-history-card__icon {
+    width: 44px;
+    height: 44px;
+    font-size: 1.35rem;
+  }
+}
+

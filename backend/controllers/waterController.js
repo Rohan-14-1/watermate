@@ -3,6 +3,7 @@ const path = require("path");
 const prisma = require("../prisma/client");
 const { completeTurn } = require("../services/turnService");
 const storageService = require("../services/storageService");
+const chickenTurnService = require("../services/chickenTurnService");
 
 function serializeRecord(record) {
   return {
@@ -136,7 +137,7 @@ async function getDashboard(req, res, next) {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const [members, currentTurnMember, latestRecord, totalDeliveries, monthDeliveries, contributionCounts] =
+    const [members, currentTurnMember, latestRecord, totalDeliveries, monthDeliveries, contributionCounts, chickenTurn] =
       await Promise.all([
         prisma.groupMember.findMany({
           where: { groupId },
@@ -161,6 +162,7 @@ async function getDashboard(req, res, next) {
           where: { groupId },
           _count: { _all: true },
         }),
+        chickenTurnService.getChickenStatus(groupId, req.user.id),
       ]);
 
     const contributionByUserId = new Map(
@@ -173,6 +175,7 @@ async function getDashboard(req, res, next) {
       currentTurn: currentTurnMember
         ? { userId: currentTurnMember.userId, name: currentTurnMember.user.name }
         : null,
+      chickenTurn,
       stats: {
         totalDeliveries,
         thisMonth: monthDeliveries,

@@ -1,5 +1,6 @@
 let currentGroupId = null;
 let currentPage = 1;
+let currentTab = "water"; // "water" | "chicken"
 
 function renderUserBox(user) {
   const box = document.getElementById("userBox");
@@ -19,20 +20,25 @@ function pageAlert(message) {
   document.getElementById("pageAlert").innerHTML = `<div class="alert alert-error">${message}</div>`;
 }
 
+function clearPageAlert() {
+  const el = document.getElementById("pageAlert");
+  if (el) el.innerHTML = "";
+}
+
 function escapeHtml(str) {
   const div = document.createElement("div");
   div.textContent = str;
   return div.innerHTML;
 }
 
-function renderHistory(data) {
+function renderWaterHistory(data) {
   const el = document.getElementById("historyContent");
 
   if (data.records.length === 0) {
     el.innerHTML = `
       <div class="empty-state card">
         <h3>No water deliveries yet.</h3>
-        <p>The first completed delivery will appear here.</p>
+        <p>The first completed water delivery will appear here.</p>
       </div>
     `;
     document.getElementById("pagination").innerHTML = "";
@@ -58,6 +64,52 @@ function renderHistory(data) {
     </div>
   `;
 
+  renderPagination(data);
+}
+
+function renderChickenHistory(data) {
+  const el = document.getElementById("historyContent");
+
+  if (data.records.length === 0) {
+    el.innerHTML = `
+      <div class="empty-state card">
+        <h3>No chicken deliveries yet.</h3>
+        <p>Deliveries marked done and approved by teammates will appear here.</p>
+      </div>
+    `;
+    document.getElementById("pagination").innerHTML = "";
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="chicken-history-list">
+      ${data.records
+        .map(
+          (r) => `
+        <div class="chicken-history-card">
+          <div class="chicken-history-card__icon" aria-hidden="true">🍗</div>
+          <div class="chicken-history-card__body">
+            <div class="chicken-history-card__title">Chicken Delivery</div>
+            <div class="chicken-history-card__meta">
+              <strong>Brought by ${escapeHtml(r.broughtByName)}</strong><br />
+              <span class="text-muted">${formatDateTime(r.completedAt)}</span>
+            </div>
+            <div class="chicken-history-card__approver">
+              Approved by ${escapeHtml(r.approvedByName)}${r.approvedAt ? ` &middot; ${formatDateTime(r.approvedAt)}` : ""}
+            </div>
+          </div>
+          <span class="badge badge-success">&#10003; Approved</span>
+        </div>
+      `
+        )
+        .join("")}
+    </div>
+  `;
+
+  renderPagination(data);
+}
+
+function renderPagination(data) {
   const pagination = document.getElementById("pagination");
   if (data.totalPages > 1) {
     pagination.innerHTML = `
@@ -80,11 +132,52 @@ function changePage(page) {
 }
 
 async function loadHistory() {
+  clearPageAlert();
+  const el = document.getElementById("historyContent");
+  el.innerHTML = `<div class="loading-row"><div class="spinner"></div><span>Loading history&hellip;</span></div>`;
+
   try {
-    const data = await Api.getHistory(currentGroupId, currentPage);
-    renderHistory(data);
+    if (currentTab === "water") {
+      const data = await Api.getHistory(currentGroupId, currentPage);
+      renderWaterHistory(data);
+    } else {
+      const data = await Api.getChickenHistory(currentGroupId, currentPage);
+      renderChickenHistory(data);
+    }
   } catch (err) {
     pageAlert(err.message || "Unable to load history.");
+  }
+}
+
+function setupTabs() {
+  const tabWater = document.getElementById("tabWater");
+  const tabChicken = document.getElementById("tabChicken");
+  const historyTitle = document.getElementById("historyTitle");
+
+  if (tabWater && tabChicken) {
+    tabWater.addEventListener("click", () => {
+      if (currentTab === "water") return;
+      currentTab = "water";
+      currentPage = 1;
+      tabWater.classList.add("is-active");
+      tabWater.setAttribute("aria-selected", "true");
+      tabChicken.classList.remove("is-active");
+      tabChicken.setAttribute("aria-selected", "false");
+      if (historyTitle) historyTitle.textContent = "Water History";
+      loadHistory();
+    });
+
+    tabChicken.addEventListener("click", () => {
+      if (currentTab === "chicken") return;
+      currentTab = "chicken";
+      currentPage = 1;
+      tabChicken.classList.add("is-active");
+      tabChicken.setAttribute("aria-selected", "true");
+      tabWater.classList.remove("is-active");
+      tabWater.setAttribute("aria-selected", "false");
+      if (historyTitle) historyTitle.textContent = "Chicken History";
+      loadHistory();
+    });
   }
 }
 
@@ -93,6 +186,7 @@ async function loadHistory() {
   if (!user) return;
 
   renderUserBox(user);
+  setupTabs();
 
   currentGroupId = getActiveGroupId();
   try {

@@ -1,5 +1,6 @@
 const prisma = require("../prisma/client");
 const { generateInviteCode } = require("../services/turnService");
+const chickenTurnService = require("../services/chickenTurnService");
 
 function serializeGroup(group) {
   return {
@@ -29,6 +30,12 @@ async function createGroup(req, res, next) {
         createdBy: req.user.id,
         members: {
           create: { userId: req.user.id, turnOrder: 1, isCurrentTurn: true },
+        },
+        chickenTurn: {
+          create: {
+            currentUserId: req.user.id,
+            status: "WAITING_FOR_COMPLETION",
+          },
         },
       },
       include: { _count: { select: { members: true } } },
@@ -106,6 +113,9 @@ async function joinGroup(req, res, next) {
         isCurrentTurn: group.members.length === 0,
       },
     });
+
+    // Ensure ChickenTurn is initialized for the group
+    await chickenTurnService.getOrCreateChickenTurn(group.id);
 
     res.status(201).json({
       message: `Successfully joined ${group.name}.`,
@@ -191,7 +201,10 @@ async function leaveGroup(req, res, next) {
         }
       }
 
-      // Delete the leaving member's membership row (historical WaterRecords remain intact)
+      // If the leaving member currently holds the chicken turn, advance it to next remaining member
+      await chickenTurnService.handleMemberLeaveChickenTurn(tx, groupId, userId);
+
+      // Delete the leaving member's membership row (historical WaterRecords and ChickenDeliveries remain intact)
       await tx.groupMember.delete({ where: { id: membership.id } });
 
       // Re-sequence remaining turn orders sequentially to avoid gaps and satisfy unique constraint
