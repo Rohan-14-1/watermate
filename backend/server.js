@@ -67,6 +67,17 @@ app.get("/api/health", async (req, res) => {
       connected: false,
     },
     jwtSecretConfigured: Boolean(process.env.JWT_SECRET),
+    storage: {
+      configured: Boolean(
+        process.env.SUPABASE_URL &&
+          (process.env.SUPABASE_SERVICE_ROLE_KEY ||
+            process.env.SUPABASE_ANON_KEY ||
+            process.env.SUPABASE_KEY)
+      ),
+      hasUrl: Boolean(process.env.SUPABASE_URL),
+      hasServiceRoleKey: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
+      bucket: process.env.SUPABASE_WATER_BUCKET || "water-deliveries",
+    },
   };
 
   if (!dbUrl) {
