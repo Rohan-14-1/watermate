@@ -28,10 +28,147 @@ class StorageService {
       process.env.SUPABASE_KEY ||
       "";
     this.supabaseBucket = process.env.SUPABASE_STORAGE_BUCKET || "watermate-chat";
+    this.supabaseWaterBucket = process.env.SUPABASE_WATER_BUCKET || "water-deliveries";
   }
 
   isSupabaseConfigured() {
     return Boolean(this.supabaseUrl && this.supabaseKey);
+  }
+
+  isProduction() {
+    return process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
+  }
+
+  /**
+   * Uploads a water delivery photo to persistent Supabase Storage.
+   * In production, requires Supabase Storage configuration and fails clearly if missing.
+   * Local storage fallback is only permitted in local development.
+   * @param {Object} params - { buffer, originalName, mimeType, groupId }
+   * @returns {Promise<{ photoUrl: string, storagePath: string, key: string }>}
+   */
+  async uploadWaterPhoto({ buffer, originalName, mimeType, groupId }) {
+    if (this.isProduction() && !this.isSupabaseConfigured()) {
+      const err = new Error("Storage service is not configured. Supabase credentials are required in production.");
+      err.code = "STORAGE_NOT_CONFIGURED";
+      err.status = 500;
+      throw err;
+    }
+
+    const ext = path.extname(originalName).toLowerCase() || ".jpg";
+    const uniqueId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${crypto.randomBytes(8).toString("hex")}`;
+    const safeGroupId = (groupId || "default").replace(/[^a-zA-Z0-9_-]/g, "");
+    const key = `${safeGroupId}/${Date.now()}-${uniqueId}${ext}`;
+    const bucket = this.supabaseWaterBucket;
+
+    if (this.isSupabaseConfigured()) {
+      const uploadUrl = `${this.supabaseUrl.replace(/\/+$/, "")}/storage/v1/object/${bucket}/${key}`;
+      const response = await fetch(uploadUrl, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.supabaseKey}`,
+          apikey: this.supabaseKey,
+          "Content-Type": mimeType || "image/jpeg",
+          "x-upsert": "false",
+        },
+        body: buffer,
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error(`[StorageService] Supabase upload failed (${response.status}):`, errText);
+
+        if (response.status === 404 || errText.includes("Bucket not found") || errText.includes("not found")) {
+          const err = new Error(`Water photo storage is not configured. Storage bucket '${bucket}' not found.`);
+          err.code = "BUCKET_NOT_FOUND";
+          err.status = 500;
+          throw err;
+        }
+
+        if (this.isProduction()) {
+          const err = new Error("Failed to store water delivery photo in cloud storage.");
+          err.code = "STORAGE_UPLOAD_FAILED";
+          err.status = 500;
+          throw err;
+        }
+
+        console.warn("[StorageService] Falling back to local storage in development mode.");
+        return this._uploadWaterPhotoLocal(buffer, ext);
+      }
+
+      // Public bucket permanent CDN URL
+      const publicUrl = `${this.supabaseUrl.replace(/\/+$/, "")}/storage/v1/object/public/${bucket}/${key}`;
+      return {
+        photoUrl: publicUrl,
+        storagePath: `supabase://${bucket}/${key}`,
+        key,
+      };
+    }
+
+    // Local development fallback
+    return this._uploadWaterPhotoLocal(buffer, ext);
+  }
+
+  _uploadWaterPhotoLocal(buffer, ext) {
+    const localDir = process.env.VERCEL
+      ? path.join("/tmp", "uploads")
+      : path.join(__dirname, "..", "uploads");
+    if (!fs.existsSync(localDir)) {
+      fs.mkdirSync(localDir, { recursive: true });
+    }
+    const filename = `water-${Date.now()}-${crypto.randomBytes(6).toString("hex")}${ext}`;
+    fs.writeFileSync(path.join(localDir, filename), buffer);
+    return {
+      photoUrl: `/uploads/${filename}`,
+      storagePath: `local://${filename}`,
+      key: filename,
+    };
+  }
+
+  /**
+   * Deletes a water delivery photo from storage (used for transactional compensation cleanup).
+   * @param {string} storagePath - e.g. "supabase://water-deliveries/group/file.jpg"
+   */
+  async deleteWaterPhoto(storagePath) {
+    if (!storagePath) return;
+
+    if (storagePath.startsWith("supabase://")) {
+      const parts = storagePath.replace("supabase://", "").split("/");
+      const bucket = parts[0];
+      const key = parts.slice(1).join("/");
+
+      if (this.isSupabaseConfigured()) {
+        try {
+          const deleteUrl = `${this.supabaseUrl.replace(/\/+$/, "")}/storage/v1/object/${bucket}`;
+          const res = await fetch(deleteUrl, {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${this.supabaseKey}`,
+              apikey: this.supabaseKey,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ prefixes: [key] }),
+          });
+          if (!res.ok) {
+            const errText = await res.text();
+            console.warn(`[StorageService] Failed to clean up photo '${key}' from Supabase:`, errText);
+          }
+        } catch (err) {
+          console.error(`[StorageService] Error during orphan photo cleanup for '${key}':`, err.message);
+        }
+      }
+      return;
+    }
+
+    if (storagePath.startsWith("local://")) {
+      const localDir = process.env.VERCEL
+        ? path.join("/tmp", "uploads")
+        : path.join(__dirname, "..", "uploads");
+      const filename = storagePath.replace("local://", "");
+      const filePath = path.join(localDir, filename);
+      if (fs.existsSync(filePath)) {
+        fs.unlink(filePath, () => {});
+      }
+    }
   }
 
   /**

@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const prisma = require("../prisma/client");
 const { completeTurn } = require("../services/turnService");
+const storageService = require("../services/storageService");
 
 function serializeRecord(record) {
   return {
@@ -15,30 +16,49 @@ function serializeRecord(record) {
 
 /**
  * POST /api/groups/:groupId/water
- * req.membership and req.group were already verified/loaded by
- * requireGroupMembership - this handler only needs to check the turn and
- * validate the upload, exactly as spelled out in the spec:
- *   1. authenticated (requireAuth)
- *   2. belongs to the group (requireGroupMembership)
- *   3. it is their turn (checked inside completeTurn)
- *   4. image validated (handleWaterPhotoUpload)
- *   5. save WaterRecord + advance turn (completeTurn, one transaction)
+ * Verified by requireAuth and requireGroupMembership.
+ * Steps:
+ *   1. Check photo is present in memory buffer
+ *   2. Pre-verify it is the user's turn
+ *   3. Upload photo to persistent Supabase Storage (fails in prod if not configured)
+ *   4. Save WaterRecord and advance turn in a single atomic DB transaction
+ *   5. If DB transaction fails, execute compensating deletion of uploaded photo
  */
 async function submitWater(req, res, next) {
   try {
-    if (!req.file) {
+    if (!req.file || !req.file.buffer) {
       return res.status(400).json({ message: "Please upload a photo." });
     }
 
-    const photoUrl = `/uploads/${req.file.filename}`;
+    // Pre-verify current turn to prevent unauthorized or unnecessary storage uploads
+    if (!req.membership || !req.membership.isCurrentTurn) {
+      return res.status(403).json({ message: "It is not your turn yet." });
+    }
+
+    // Upload to persistent cloud storage (Supabase Storage in production)
+    let uploadResult;
+    try {
+      uploadResult = await storageService.uploadWaterPhoto({
+        buffer: req.file.buffer,
+        originalName: req.file.originalname || "water.jpg",
+        mimeType: req.file.mimetype || "image/jpeg",
+        groupId: req.group.id,
+      });
+    } catch (uploadErr) {
+      console.error("[WaterController] Storage upload error:", uploadErr.message);
+      return res.status(uploadErr.status || 500).json({
+        message: uploadErr.message || "Failed to upload water delivery photo to storage.",
+      });
+    }
 
     let result;
     try {
-      result = await completeTurn(req.group.id, req.user.id, photoUrl);
+      result = await completeTurn(req.group.id, req.user.id, uploadResult.photoUrl);
     } catch (err) {
-      // Clean up the uploaded file if the turn check failed, so we don't
-      // accumulate orphaned uploads for rejected submissions.
-      fs.unlink(req.file.path, () => {});
+      // Transaction failed: execute compensation cleanup to remove orphaned storage object
+      storageService.deleteWaterPhoto(uploadResult.storagePath).catch((cleanupErr) => {
+        console.error("[WaterController] Failed to clean up orphaned storage photo:", cleanupErr.message);
+      });
 
       if (err.code === "NOT_YOUR_TURN") {
         return res.status(403).json({ message: "It is not your turn yet." });

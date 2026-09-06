@@ -841,4 +841,21 @@ img {
   }
 }
 
+/* Fallback styling for delivery photos if network/load fails */
+.photo-load-error {
+  position: relative;
+  background-color: #e2e8f0 !important;
+  color: transparent !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-load-error::after {
+  content: "💧";
+  font-size: 1.5rem;
+  color: #64748b;
+  position: absolute;
+}
+
 

@@ -45,7 +45,7 @@ function renderHistory(data) {
         .map(
           (r) => `
         <div class="history-card">
-          <img class="history-card__photo" src="${Api.resolveMediaUrl(r.photoUrl)}" alt="Water delivery photo" />
+          <img class="history-card__photo" src="${Api.resolveMediaUrl(r.photoUrl)}" alt="Water delivery photo" onerror="this.onerror=null;this.classList.add('photo-load-error');" />
           <div class="history-card__body">
             <div class="history-card__name">${escapeHtml(r.name)}</div>
             <div class="history-card__time">${formatDateTime(r.completedAt)}</div>

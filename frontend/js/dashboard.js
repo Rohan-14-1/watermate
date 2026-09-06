@@ -1,8 +1,18 @@
 const ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-const MAX_SIZE_BYTES = 5 * 1024 * 1024;
+// 4 MB maximum application upload size ensures request remains well under Vercel payload ceiling
+const MAX_SIZE_BYTES = 4 * 1024 * 1024;
 
 let currentGroupId = null;
 let selectedFile = null;
+
+function isNativeApp() {
+  return Boolean(
+    typeof window !== "undefined" &&
+      window.Capacitor &&
+      typeof window.Capacitor.isNativePlatform === "function" &&
+      window.Capacitor.isNativePlatform()
+  );
+}
 
 function renderUserBox(user) {
   const box = document.getElementById("userBox");
@@ -61,7 +71,7 @@ function renderDashboard(data) {
 
   const lastDelivery = data.lastDelivery
     ? `
-      <img class="delivery-card__photo" src="${Api.resolveMediaUrl(data.lastDelivery.photoUrl)}" alt="Water delivery photo" />
+      <img class="delivery-card__photo" src="${Api.resolveMediaUrl(data.lastDelivery.photoUrl)}" alt="Water delivery photo" onerror="this.onerror=null;this.classList.add('photo-load-error');" />
       <div class="delivery-card__body">
         <div class="delivery-card__name">Brought by ${escapeHtml(data.lastDelivery.name)}</div>
         <div class="delivery-card__time">${formatDateTime(data.lastDelivery.completedAt)}</div>
@@ -149,7 +159,9 @@ async function loadDashboard() {
 
 /* ---------------- Submit water modal ---------------- */
 
-async function captureWithCapacitorCamera(sourceType) {
+/* ---------------- Submit water modal ---------------- */
+
+async function captureWithCapacitorCamera() {
   const modalAlert = document.getElementById("modalAlert");
   if (modalAlert) modalAlert.innerHTML = "";
   const Camera = window.Capacitor?.Plugins?.Camera;
@@ -157,18 +169,33 @@ async function captureWithCapacitorCamera(sourceType) {
   if (Camera) {
     try {
       const image = await Camera.getPhoto({
-        quality: 85,
+        quality: 80,
         allowEditing: false,
         resultType: "uri",
-        source: sourceType === "PHOTOS" ? "PHOTOS" : "CAMERA",
+        source: "CAMERA",
       });
 
       if (image && image.webPath) {
         const response = await fetch(image.webPath);
         const blob = await response.blob();
+
+        // Validate actual captured file size against 4MB limit
+        if (blob.size > MAX_SIZE_BYTES) {
+          if (modalAlert) {
+            modalAlert.innerHTML = `<div class="alert alert-error">Photo is too large (${(blob.size / (1024 * 1024)).toFixed(1)}MB). Maximum allowed size is 4MB. Please retake the photo.</div>`;
+          }
+          selectedFile = null;
+          const previewBox = document.getElementById("previewBox");
+          if (previewBox) previewBox.innerHTML = "";
+          const submitBtn = document.getElementById("submitWaterBtn");
+          if (submitBtn) submitBtn.disabled = true;
+          return;
+        }
+
         const ext = image.format || "jpg";
         const file = new File([blob], `water_${Date.now()}.${ext}`, { type: blob.type || "image/jpeg" });
         selectedFile = file;
+
         const previewBox = document.getElementById("previewBox");
         if (previewBox) {
           previewBox.innerHTML = `
@@ -177,6 +204,12 @@ async function captureWithCapacitorCamera(sourceType) {
             </div>
           `;
         }
+
+        const cameraBtnText = document.getElementById("cameraBtnText");
+        if (cameraBtnText) {
+          cameraBtnText.textContent = "Retake Photo";
+        }
+
         const submitBtn = document.getElementById("submitWaterBtn");
         if (submitBtn) submitBtn.disabled = false;
       }
@@ -188,11 +221,7 @@ async function captureWithCapacitorCamera(sourceType) {
   } else {
     const photoInput = document.getElementById("photoInput");
     if (photoInput) {
-      if (sourceType === "CAMERA") {
-        photoInput.setAttribute("capture", "environment");
-      } else {
-        photoInput.removeAttribute("capture");
-      }
+      photoInput.setAttribute("capture", "environment");
       photoInput.click();
     }
   }
@@ -202,6 +231,36 @@ function openSubmitModal() {
   selectedFile = null;
   const overlay = document.getElementById("submitModal");
   const body = document.getElementById("modalBody");
+  const isNative = isNativeApp();
+
+  let uploadControlsHtml = "";
+  if (isNative) {
+    // Native mobile app: Camera only (no gallery, no file picker)
+    uploadControlsHtml = `
+      <div style="margin-bottom:14px;">
+        <button type="button" class="btn btn-primary btn-block" id="cameraBtn" style="display:flex; align-items:center; justify-content:center; gap:8px; font-size:1rem; padding:12px;">
+          &#128247; <span id="cameraBtnText">Take Photo</span>
+        </button>
+      </div>
+    `;
+  } else {
+    // Web browser: Camera and file drop input
+    uploadControlsHtml = `
+      <div style="display:flex; gap:10px; margin-bottom:12px;">
+        <button type="button" class="btn btn-secondary" id="cameraBtn" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; font-size:0.9rem; padding:10px 8px;">
+          &#128247; <span id="cameraBtnText">Take Photo</span>
+        </button>
+      </div>
+      <label class="photo-drop" id="photoDrop">
+        <div id="photoDropLabel">
+          <div style="font-size:1.8rem;margin-bottom:6px;">&#128248;</div>
+          <strong>Snap or choose a photo of the water</strong><br />
+          <span class="text-muted" style="font-size:0.8rem;">JPG, PNG, or WebP &middot; up to 4MB</span>
+        </div>
+        <input type="file" id="photoInput" accept="image/*,image/jpeg,image/png,image/webp" />
+      </label>
+    `;
+  }
 
   body.innerHTML = `
     <div class="modal__head">
@@ -209,22 +268,7 @@ function openSubmitModal() {
       <button class="modal__close" id="closeModalBtn" aria-label="Close">&times;</button>
     </div>
     <div id="modalAlert"></div>
-    <div style="display:flex; gap:10px; margin-bottom:12px;">
-      <button type="button" class="btn btn-secondary" id="cameraBtn" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; font-size:0.9rem; padding:10px 8px;">
-        &#128247; Take Photo
-      </button>
-      <button type="button" class="btn btn-secondary" id="galleryBtn" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; font-size:0.9rem; padding:10px 8px;">
-        &#128444;&#65039; Gallery
-      </button>
-    </div>
-    <label class="photo-drop" id="photoDrop">
-      <div id="photoDropLabel">
-        <div style="font-size:1.8rem;margin-bottom:6px;">&#128248;</div>
-        <strong>Snap or choose a photo of the water</strong><br />
-        <span class="text-muted" style="font-size:0.8rem;">JPG, PNG, or WebP &middot; up to 5MB</span>
-      </div>
-      <input type="file" id="photoInput" accept="image/*,image/jpeg,image/png,image/webp" />
-    </label>
+    ${uploadControlsHtml}
     <div id="previewBox"></div>
     <button class="btn btn-accent btn-block" id="submitWaterBtn" style="margin-top:18px;" disabled>Submit water</button>
   `;
@@ -236,10 +280,13 @@ function openSubmitModal() {
     if (e.target === overlay) closeSubmitModal();
   });
 
-  document.getElementById("cameraBtn").addEventListener("click", () => captureWithCapacitorCamera("CAMERA"));
-  document.getElementById("galleryBtn").addEventListener("click", () => captureWithCapacitorCamera("PHOTOS"));
+  document.getElementById("cameraBtn").addEventListener("click", () => captureWithCapacitorCamera());
 
-  document.getElementById("photoInput").addEventListener("change", handlePhotoChange);
+  const photoInput = document.getElementById("photoInput");
+  if (photoInput) {
+    photoInput.addEventListener("change", handlePhotoChange);
+  }
+
   document.getElementById("submitWaterBtn").addEventListener("click", handleSubmitWater);
 }
 
@@ -255,13 +302,13 @@ function handlePhotoChange(e) {
   if (!file) return;
 
   if (!ALLOWED_TYPES.includes(file.type)) {
-    modalAlert.innerHTML = `<div class="alert alert-error">Invalid image format. Use JPG, PNG, or WebP.</div>`;
+    modalAlert.innerHTML = `<div class="alert alert-error">Invalid image format. Allowed formats: JPG, PNG, or WebP.</div>`;
     e.target.value = "";
     return;
   }
 
   if (file.size > MAX_SIZE_BYTES) {
-    modalAlert.innerHTML = `<div class="alert alert-error">Image is too large. Maximum size is 5MB.</div>`;
+    modalAlert.innerHTML = `<div class="alert alert-error">Image is too large (${(file.size / (1024 * 1024)).toFixed(1)}MB). Maximum size is 4MB.</div>`;
     e.target.value = "";
     return;
   }
@@ -275,6 +322,10 @@ function handlePhotoChange(e) {
         <img src="${ev.target.result}" alt="Water photo preview" />
       </div>
     `;
+    const cameraBtnText = document.getElementById("cameraBtnText");
+    if (cameraBtnText) {
+      cameraBtnText.textContent = "Change Photo";
+    }
     document.getElementById("submitWaterBtn").disabled = false;
   };
   reader.readAsDataURL(file);
