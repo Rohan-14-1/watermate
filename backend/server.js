@@ -69,6 +69,10 @@ app.get("/api/health", async (req, res) => {
       connected: false,
     },
     jwtSecretConfigured: Boolean(process.env.JWT_SECRET),
+    push: {
+      configured: require("./services/pushService").isConfigured(),
+      adminInitialized: require("./services/pushService").adminInitialized,
+    },
     storage: {
       configured: Boolean(
         process.env.SUPABASE_URL &&
@@ -99,6 +103,7 @@ app.get("/api/health", async (req, res) => {
     const prisma = require("./prisma/client");
     await prisma.$queryRaw`SELECT 1`;
     response.database.connected = true;
+    response.push.devicesCount = await prisma.userDevice.count().catch(() => 0);
     return res.json(response);
   } catch (err) {
     response.status = "error";
