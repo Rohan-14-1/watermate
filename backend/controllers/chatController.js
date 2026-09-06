@@ -1,6 +1,7 @@
 const prisma = require("../prisma/client");
 const storageService = require("../services/storageService");
 const chatCleanupService = require("../services/chatCleanupService");
+const pushService = require("../services/pushService");
 
 function serializeAttachment(att, groupId) {
   return {
@@ -151,6 +152,34 @@ async function sendChatMessage(req, res, next) {
         attachments: true,
       },
     });
+
+    // Asynchronously dispatch push notification to other group members
+    (async () => {
+      try {
+        const teammates = await prisma.groupMember.findMany({
+          where: { groupId, userId: { not: req.user.id } },
+          select: { userId: true },
+        });
+
+        const snippet = text || (req.file ? `Sent an attachment: ${req.file.originalname}` : "New message");
+        const senderName = req.user.name || "Teammate";
+
+        for (const mate of teammates) {
+          pushService.sendToUser(mate.userId, {
+            title: `💬 ${senderName}`,
+            body: snippet,
+            data: {
+              type: "CHAT_MESSAGE",
+              groupId,
+              messageId: message.id,
+              senderId: req.user.id,
+            },
+          }).catch(() => {});
+        }
+      } catch (pushErr) {
+        console.warn("[ChatController] Push dispatch error:", pushErr.message);
+      }
+    })();
 
     res.status(201).json({
       message: serializeMessage(fullMessage, req.user.id, groupId),

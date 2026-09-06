@@ -180,6 +180,8 @@
     });
   }
 
+  let lastKnownUnreadCount = null;
+
   async function loadUnreadCount() {
     activeGroupId = localStorage.getItem("wm_active_group");
     const api = getApi();
@@ -187,7 +189,22 @@
 
     try {
       const data = await api.listNotifications(activeGroupId, 1);
-      unreadCount = data.unreadCount || 0;
+      const newUnread = data.unreadCount || 0;
+
+      // Detect newly arrived notifications while the app is active
+      if (lastKnownUnreadCount !== null && newUnread > lastKnownUnreadCount) {
+        if (data.notifications && data.notifications.length > 0) {
+          const latest = data.notifications[0];
+          showHeadsUpBanner({
+            title: latest.title || "WaterMate Alert",
+            body: latest.body || "",
+            data: { notificationId: latest.id, type: latest.type },
+          });
+        }
+      }
+
+      lastKnownUnreadCount = newUnread;
+      unreadCount = newUnread;
       updateBadgeUI();
     } catch (err) {
       // Quiet fail on network hiccups
@@ -506,6 +523,11 @@
       PushNotifications.addListener("pushNotificationReceived", (notification) => {
         console.log("[Push] Notification received:", notification);
         loadUnreadCount();
+        showHeadsUpBanner({
+          title: notification.title || notification.data?.title || "WaterMate Alert",
+          body: notification.body || notification.data?.body || "",
+          data: notification.data,
+        });
       });
 
       PushNotifications.addListener("pushNotificationActionPerformed", (notification) => {
@@ -521,6 +543,74 @@
     } catch (err) {
       console.warn("[Push] Init error:", err);
     }
+  }
+
+  function showHeadsUpBanner({ title, body, data }) {
+    if (!title && !body) return;
+
+    let container = document.getElementById("wmHeadsUpContainer");
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "wmHeadsUpContainer";
+      container.className = "wm-headsup-container";
+      document.body.appendChild(container);
+    }
+
+    const banner = document.createElement("div");
+    banner.className = "wm-headsup-banner";
+    banner.innerHTML = `
+      <div class="wm-headsup-icon">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#ffffff" stroke-width="2">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+      </div>
+      <div class="wm-headsup-content">
+        <div class="wm-headsup-title">${escapeHtml(title || "WaterMate Alert")}</div>
+        <div class="wm-headsup-body">${escapeHtml(body || "")}</div>
+      </div>
+      <button type="button" class="wm-headsup-dismiss" aria-label="Dismiss">&times;</button>
+    `;
+
+    // Gentle haptic feedback if available on device
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      try { navigator.vibrate([100, 50, 100]); } catch (_) {}
+    }
+
+    banner.onclick = (e) => {
+      if (e.target.closest(".wm-headsup-dismiss")) return;
+      banner.classList.add("wm-headsup-hiding");
+      setTimeout(() => banner.remove(), 250);
+      if (data?.type === "CHAT_MESSAGE") {
+        const chatTab = document.querySelector('[data-view="chat"]') || document.getElementById("tabChat");
+        if (chatTab) {
+          chatTab.click();
+        } else {
+          window.location.href = "chat.html";
+        }
+      } else {
+        openNotificationCenter();
+      }
+    };
+
+    const dismissBtn = banner.querySelector(".wm-headsup-dismiss");
+    if (dismissBtn) {
+      dismissBtn.onclick = (e) => {
+        e.stopPropagation();
+        banner.classList.add("wm-headsup-hiding");
+        setTimeout(() => banner.remove(), 250);
+      };
+    }
+
+    container.appendChild(banner);
+
+    // Auto dismiss after 4.5 seconds
+    setTimeout(() => {
+      if (banner.parentNode) {
+        banner.classList.add("wm-headsup-hiding");
+        setTimeout(() => banner.remove(), 250);
+      }
+    }, 4500);
   }
 
   function formatTimeAgo(isoString) {
@@ -552,5 +642,6 @@
     openCenter: openNotificationCenter,
     openSendModal: openSendNotificationModal,
     refresh: loadUnreadCount,
+    showBanner: showHeadsUpBanner,
   };
 })();

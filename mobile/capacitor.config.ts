@@ -12,6 +12,9 @@ const config: CapacitorConfig = {
   plugins: {
     Camera: {
       presentationStyle: 'fullscreen'
+    },
+    PushNotifications: {
+      presentationOptions: ['badge', 'sound', 'alert']
     }
   }
 };
