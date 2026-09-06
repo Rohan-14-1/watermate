@@ -173,6 +173,36 @@ class StorageService {
   }
 
   /**
+   * Deletes multiple water photos given their public URLs or local paths.
+   * Used when an entire group is permanently deleted.
+   * @param {string[]} photoUrls
+   */
+  async deleteWaterPhotosByUrls(photoUrls) {
+    if (!Array.isArray(photoUrls) || photoUrls.length === 0) return;
+
+    for (const url of photoUrls) {
+      if (!url || typeof url !== "string") continue;
+      try {
+        if (url.includes("/storage/v1/object/public/")) {
+          const parts = url.split("/storage/v1/object/public/")[1];
+          if (parts) {
+            const bucket = parts.split("/")[0];
+            const key = parts.split("/").slice(1).join("/");
+            await this.deleteWaterPhoto(`supabase://${bucket}/${key}`);
+          }
+        } else if (url.startsWith("/uploads/")) {
+          const filename = url.replace("/uploads/", "");
+          await this.deleteWaterPhoto(`local://${filename}`);
+        } else if (url.startsWith("supabase://") || url.startsWith("local://")) {
+          await this.deleteWaterPhoto(url);
+        }
+      } catch (err) {
+        console.error(`[StorageService] Error cleaning up photo '${url}':`, err.message);
+      }
+    }
+  }
+
+  /**
    * Uploads file buffer to persistent storage.
    * @param {Object} params - { buffer, originalName, mimeType, prefix }
    * @returns {Promise<{ storagePath: string, fileName: string, fileSize: number, mimeType: string, url: string }>}

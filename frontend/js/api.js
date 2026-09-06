@@ -168,6 +168,15 @@ const Api = {
     apiRequest("/groups/join", { method: "POST", body: JSON.stringify({ inviteCode }) }),
   renameGroup: (groupId, name) =>
     apiRequest(`/groups/${groupId}`, { method: "PUT", body: JSON.stringify({ name }) }),
+  leaveGroup: (groupId) =>
+    apiRequest(`/groups/${groupId}/leave`, { method: "POST" }),
+  transferAdmin: (groupId, newAdminUserId) =>
+    apiRequest(`/groups/${groupId}/transfer-admin`, {
+      method: "POST",
+      body: JSON.stringify({ newAdminUserId }),
+    }),
+  deleteGroup: (groupId) =>
+    apiRequest(`/groups/${groupId}`, { method: "DELETE" }),
 
   // Members
   listMembers: (groupId) => apiRequest(`/groups/${groupId}/members`),

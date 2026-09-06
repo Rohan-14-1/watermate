@@ -1,4 +1,5 @@
 let currentGroupId = null;
+let currentGroup = null;
 let isAdmin = false;
 let members = [];
 let dragFromIndex = null;
@@ -58,7 +59,8 @@ function renderMembers() {
             <div class="email">${escapeHtml(m.email)}</div>
           </span>
           ${m.isCurrentTurn ? `<span class="badge badge-next">Next</span>` : ""}
-          ${isAdmin ? `<button class="btn-link" data-remove="${m.id}" style="color:#b3432f;margin-left:auto;">Remove</button>` : ""}
+          ${currentGroup && m.userId === currentGroup.createdBy ? `<span class="badge" style="margin-left:auto;font-size:0.75rem;padding:4px 8px;">Admin</span>` : ""}
+          ${isAdmin && currentGroup && m.userId !== currentGroup.createdBy ? `<button class="btn-link" data-remove="${m.id}" style="color:#b3432f;margin-left:auto;">Remove</button>` : ""}
         </li>
       `
         )
@@ -164,6 +166,7 @@ async function loadMembers() {
       Api.getGroup(currentGroupId),
     ]);
     members = m;
+    currentGroup = group;
     const user = await Api.me();
     isAdmin = group.createdBy === user.user.id;
     document.getElementById("adminHint").style.display = isAdmin ? "block" : "none";

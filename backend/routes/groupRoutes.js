@@ -5,9 +5,15 @@ const {
   getGroup,
   joinGroup,
   updateGroup,
+  leaveGroup,
+  transferAdmin,
+  deleteGroup,
 } = require("../controllers/groupController");
 const { requireAuth } = require("../middleware/authMiddleware");
-const { requireGroupMembership } = require("../middleware/groupAccess");
+const {
+  requireGroupMembership,
+  requireGroupAdmin,
+} = require("../middleware/groupAccess");
 
 const router = express.Router();
 
@@ -18,5 +24,18 @@ router.get("/", listMyGroups);
 router.post("/join", joinGroup);
 router.get("/:groupId", requireGroupMembership, getGroup);
 router.put("/:groupId", requireGroupMembership, updateGroup);
+router.post("/:groupId/leave", requireGroupMembership, leaveGroup);
+router.post(
+  "/:groupId/transfer-admin",
+  requireGroupMembership,
+  requireGroupAdmin,
+  transferAdmin
+);
+router.delete(
+  "/:groupId",
+  requireGroupMembership,
+  requireGroupAdmin,
+  deleteGroup
+);
 
 module.exports = router;

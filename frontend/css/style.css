@@ -258,6 +258,16 @@ img {
   background: var(--coral-100);
 }
 
+.btn-danger-solid {
+  background: #b3432f;
+  color: #ffffff !important;
+  border: 1px solid #b3432f;
+}
+.btn-danger-solid:hover {
+  background: #963523;
+  color: #ffffff !important;
+}
+
 .btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;

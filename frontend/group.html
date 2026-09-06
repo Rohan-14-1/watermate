@@ -62,6 +62,26 @@
         </div>
       </div>
 
+      <!-- Active Group Settings Section -->
+      <div class="section-title" id="activeGroupSectionTitle" style="display:none;">ACTIVE FLAT SETTINGS</div>
+      <div class="card" id="activeGroupCard" style="display:none;margin-bottom:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;">
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+              <h3 id="activeGroupName" style="margin:0;color:var(--ocean-900);">&mdash;</h3>
+              <span id="activeGroupRoleBadge" class="badge">Member</span>
+            </div>
+            <div class="text-muted" style="font-size:0.85rem;">
+              Invite Code: <strong id="activeGroupInviteCode" style="font-family:monospace;letter-spacing:1px;color:var(--ocean-800);">&mdash;</strong>
+              &middot; <span id="activeGroupMemberCount">0 members</span>
+            </div>
+          </div>
+          <div id="activeGroupActions" style="display:flex;gap:10px;flex-wrap:wrap;">
+            <!-- Rendered dynamically by group.js -->
+          </div>
+        </div>
+      </div>
+
       <div class="section-title">YOUR FLAT GROUPS</div>
       <div id="groupsSection">
         <div class="loading-row"><div class="spinner"></div><span>Loading your groups&hellip;</span></div>
@@ -96,6 +116,102 @@
         </div>
       </div>
     </main>
+
+    <!-- Leave Group Confirmation Modal (Normal Member) -->
+    <div class="modal-overlay" id="leaveGroupModal" hidden>
+      <div class="modal" style="max-width:440px;">
+        <div class="modal__head">
+          <h3>Leave this group?</h3>
+          <button class="modal__close" id="closeLeaveModalBtn" aria-label="Close">&times;</button>
+        </div>
+        <p style="margin-top:12px;margin-bottom:18px;font-size:0.95rem;color:var(--ink-soft);line-height:1.5;">
+          You will no longer be able to see this group's members, water history, or current turn.
+        </p>
+        <div id="leaveModalAlert"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button type="button" class="btn btn-secondary" id="cancelLeaveBtn">Cancel</button>
+          <button type="button" class="btn btn-danger-solid" id="confirmLeaveBtn">Leave Group</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Leave Group Modal (Prompts to Transfer or Delete) -->
+    <div class="modal-overlay" id="adminLeaveModal" hidden>
+      <div class="modal" style="max-width:460px;">
+        <div class="modal__head">
+          <h3>You're the group admin</h3>
+          <button class="modal__close" id="closeAdminLeaveModalBtn" aria-label="Close">&times;</button>
+        </div>
+        <p style="margin-top:12px;margin-bottom:20px;font-size:0.95rem;color:var(--ink-soft);line-height:1.5;">
+          Before leaving, transfer admin ownership to another member or delete the group.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <button type="button" class="btn btn-primary btn-block" id="adminLeaveToTransferBtn">&#128101; Transfer Admin</button>
+          <button type="button" class="btn btn-danger-solid btn-block" id="adminLeaveToDeleteBtn">&#128465; Delete Group</button>
+          <button type="button" class="btn btn-secondary btn-block" id="cancelAdminLeaveBtn">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transfer Admin Modal -->
+    <div class="modal-overlay" id="transferAdminModal" hidden>
+      <div class="modal" style="max-width:440px;">
+        <div class="modal__head">
+          <h3>Transfer Admin</h3>
+          <button class="modal__close" id="closeTransferModalBtn" aria-label="Close">&times;</button>
+        </div>
+        <div id="transferModalAlert"></div>
+        <div id="transferStepSelect">
+          <p style="margin-top:12px;margin-bottom:14px;font-size:0.95rem;color:var(--ink-soft);line-height:1.5;">
+            Select a group member to become the new group admin:
+          </p>
+          <div class="field" style="margin-bottom:18px;">
+            <label for="newAdminSelect">Select Member</label>
+            <select id="newAdminSelect" style="width:100%;padding:10px;border-radius:8px;border:1px solid #dcdad5;font-size:0.95rem;background:#fff;"></select>
+          </div>
+          <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button type="button" class="btn btn-secondary" id="cancelTransferBtn">Cancel</button>
+            <button type="button" class="btn btn-primary" id="continueTransferBtn">Continue</button>
+          </div>
+        </div>
+        <div id="transferStepConfirm" style="display:none;">
+          <p id="transferConfirmText" style="margin-top:12px;margin-bottom:8px;font-weight:600;color:var(--ocean-900);font-size:1.05rem;">
+            Transfer admin to member?
+          </p>
+          <p style="margin-bottom:20px;font-size:0.92rem;color:var(--ink-soft);line-height:1.5;">
+            This member will become the new group admin. You will remain in the group as a regular member.
+          </p>
+          <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button type="button" class="btn btn-secondary" id="backTransferBtn">Cancel</button>
+            <button type="button" class="btn btn-primary" id="confirmTransferBtn">Transfer Admin</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Group Modal (Admin Only, Destructive) -->
+    <div class="modal-overlay" id="deleteGroupModal" hidden>
+      <div class="modal" style="max-width:460px;">
+        <div class="modal__head">
+          <h3 style="color:#b3432f;">Delete this group?</h3>
+          <button class="modal__close" id="closeDeleteModalBtn" aria-label="Close">&times;</button>
+        </div>
+        <div id="deleteModalAlert"></div>
+        <p style="margin-top:12px;margin-bottom:14px;font-size:0.95rem;color:var(--ink-soft);line-height:1.5;">
+          This will permanently delete the group and its members, water history, and group data. This action cannot be undone.
+        </p>
+        <div class="field" style="margin-bottom:18px;">
+          <label for="confirmDeleteGroupNameInput" id="confirmDeleteLabel" style="font-size:0.9rem;font-weight:600;color:var(--ocean-900);">
+            Type &ldquo;<span id="expectedGroupName"></span>&rdquo; to confirm deletion:
+          </label>
+          <input type="text" id="confirmDeleteGroupNameInput" placeholder="Enter group name exactly" autocomplete="off" />
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button type="button" class="btn btn-secondary" id="cancelDeleteBtn">Cancel</button>
+          <button type="button" class="btn btn-danger-solid" id="confirmDeleteBtn" disabled>Delete Group</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Mobile App Bottom Navigation Bar -->
     <nav class="bottom-nav" aria-label="Mobile Navigation">
