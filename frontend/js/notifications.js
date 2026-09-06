@@ -78,12 +78,15 @@
             <button type="button" class="wm-modal__close" id="wmNotifClose" aria-label="Close">&times;</button>
           </div>
           <div class="wm-modal__body">
-            <div class="notif-center-actions">
-              <button type="button" class="btn btn-secondary" id="wmOpenSendAlertBtn" style="flex:1; padding:8px 12px; font-size:0.85rem;">
+            <div class="notif-center-actions" style="flex-wrap: wrap; gap: 8px;">
+              <button type="button" class="btn btn-secondary" id="wmOpenSendAlertBtn" style="flex:1; min-width: 140px; padding:8px 12px; font-size:0.85rem;">
                 📢 Send Team Alert
               </button>
               <button type="button" class="btn btn-outline" id="wmMarkAllReadBtn" style="padding:8px 12px; font-size:0.85rem;">
                 Mark all read
+              </button>
+              <button type="button" class="btn btn-outline" id="wmTestPushBtn" style="padding:8px 12px; font-size:0.85rem;" title="Test Push Notification on this phone">
+                🔔 Test Push
               </button>
             </div>
             <div id="wmNotifList" class="notif-list">
@@ -178,6 +181,52 @@
     document.addEventListener("click", async (e) => {
       if (e.target.closest("#wmMarkAllReadBtn")) {
         await markAllRead();
+      }
+    });
+
+    // Test Push Notification on Current Device
+    document.addEventListener("click", async (e) => {
+      const btn = e.target.closest("#wmTestPushBtn");
+      if (!btn) return;
+
+      const originalHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.textContent = "Testing...";
+
+      try {
+        const PushNotifications = window.Capacitor?.Plugins?.PushNotifications;
+        let token = localStorage.getItem("wm_push_device_token");
+
+        if (PushNotifications) {
+          let perm = await PushNotifications.checkPermissions();
+          if (perm.receive !== "granted") {
+            perm = await PushNotifications.requestPermissions();
+          }
+          if (perm.receive !== "granted") {
+            alert(`⚠️ Notification permission is ${perm.receive}. Please allow notifications in phone Settings.`);
+            return;
+          }
+          await PushNotifications.register();
+        }
+
+        // Fetch fresh token if not in storage
+        token = localStorage.getItem("wm_push_device_token");
+        if (token && window.Api?.registerDevice && window.Capacitor) {
+          const platform = window.Capacitor.getPlatform() === "ios" ? "IOS" : "ANDROID";
+          await window.Api.registerDevice(token, platform).catch(() => {});
+        }
+
+        if (window.Api && window.Api.testSelfPush) {
+          const res = await window.Api.testSelfPush();
+          alert(`✅ ${res.message || "Test notification sent! Check your notification bar."}`);
+        } else {
+          alert("Push test sent! Check your screen.");
+        }
+      } catch (err) {
+        alert("Push Test: " + (err.message || "Failed to trigger push."));
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
       }
     });
 

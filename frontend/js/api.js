@@ -265,6 +265,10 @@ const Api = {
       method: "DELETE",
       body: JSON.stringify({ token }),
     }),
+  testSelfPush: () =>
+    apiRequest("/notifications/test-self", {
+      method: "POST",
+    }),
 };
 
 // Global export for Web, Android, and iOS Capacitor environments
