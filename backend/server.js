@@ -76,7 +76,7 @@ app.get("/api/health", async (req, res) => {
       ),
       hasUrl: Boolean(process.env.SUPABASE_URL),
       hasServiceRoleKey: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
-      bucket: process.env.SUPABASE_WATER_BUCKET || "water-deliveries",
+      bucket: (process.env.SUPABASE_WATER_BUCKET || "water-deliveries").trim(),
     },
   };
 

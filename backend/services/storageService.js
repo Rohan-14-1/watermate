@@ -21,14 +21,15 @@ if (!fs.existsSync(LOCAL_CHAT_UPLOADS_DIR)) {
 
 class StorageService {
   constructor() {
-    this.supabaseUrl = process.env.SUPABASE_URL || "";
-    this.supabaseKey =
+    this.supabaseUrl = (process.env.SUPABASE_URL || "").trim();
+    this.supabaseKey = (
       process.env.SUPABASE_SERVICE_ROLE_KEY ||
       process.env.SUPABASE_ANON_KEY ||
       process.env.SUPABASE_KEY ||
-      "";
-    this.supabaseBucket = process.env.SUPABASE_STORAGE_BUCKET || "watermate-chat";
-    this.supabaseWaterBucket = process.env.SUPABASE_WATER_BUCKET || "water-deliveries";
+      ""
+    ).trim();
+    this.supabaseBucket = (process.env.SUPABASE_STORAGE_BUCKET || "watermate-chat").trim();
+    this.supabaseWaterBucket = (process.env.SUPABASE_WATER_BUCKET || "water-deliveries").trim();
   }
 
   isSupabaseConfigured() {
