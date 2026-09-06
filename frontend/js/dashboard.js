@@ -6,11 +6,28 @@ let currentGroupId = null;
 let selectedFile = null;
 
 function isNativeApp() {
+  if (typeof window === "undefined") return false;
+  if (typeof isNativePlatform === "function" && isNativePlatform()) {
+    return true;
+  }
+  if (window.Capacitor) {
+    if (typeof window.Capacitor.isNativePlatform === "function") {
+      try {
+        if (window.Capacitor.isNativePlatform()) return true;
+      } catch (_) {}
+    }
+    if (typeof window.Capacitor.getPlatform === "function") {
+      try {
+        const p = window.Capacitor.getPlatform();
+        if (p === "android" || p === "ios") return true;
+      } catch (_) {}
+    }
+    if (window.Capacitor.isNative) return true;
+  }
   return Boolean(
-    typeof window !== "undefined" &&
-      window.Capacitor &&
-      typeof window.Capacitor.isNativePlatform === "function" &&
-      window.Capacitor.isNativePlatform()
+    window.location.protocol === "capacitor:" ||
+    window.location.protocol === "ionic:" ||
+    window.location.protocol === "file:"
   );
 }
 
@@ -159,8 +176,6 @@ async function loadDashboard() {
 
 /* ---------------- Submit water modal ---------------- */
 
-/* ---------------- Submit water modal ---------------- */
-
 async function captureWithCapacitorCamera() {
   const modalAlert = document.getElementById("modalAlert");
   if (modalAlert) modalAlert.innerHTML = "";
@@ -196,18 +211,41 @@ async function captureWithCapacitorCamera() {
         const file = new File([blob], `water_${Date.now()}.${ext}`, { type: blob.type || "image/jpeg" });
         selectedFile = file;
 
+        const isNative = isNativeApp();
         const previewBox = document.getElementById("previewBox");
-        if (previewBox) {
-          previewBox.innerHTML = `
-            <div class="photo-preview">
-              <img src="${image.webPath}" alt="Water photo preview" />
-            </div>
-          `;
-        }
+        const cameraControls = document.getElementById("cameraControls");
 
-        const cameraBtnText = document.getElementById("cameraBtnText");
-        if (cameraBtnText) {
-          cameraBtnText.textContent = "Retake Photo";
+        if (isNative) {
+          // Hide initial Take Photo button once photo is captured
+          if (cameraControls) cameraControls.style.display = "none";
+
+          if (previewBox) {
+            previewBox.innerHTML = `
+              <div class="photo-preview" style="margin-bottom:12px;">
+                <img src="${image.webPath}" alt="Water photo preview" style="width:100%; border-radius:10px; max-height:280px; object-fit:cover;" />
+              </div>
+              <button type="button" class="btn btn-secondary btn-block" id="retakeBtn" style="display:flex; align-items:center; justify-content:center; gap:8px; font-size:0.95rem; padding:12px; margin-bottom:14px; border-radius:8px;">
+                &#128247; Retake Photo
+              </button>
+            `;
+            const retakeBtn = document.getElementById("retakeBtn");
+            if (retakeBtn) {
+              retakeBtn.addEventListener("click", () => captureWithCapacitorCamera());
+            }
+          }
+        } else {
+          // Web browser preview
+          if (previewBox) {
+            previewBox.innerHTML = `
+              <div class="photo-preview">
+                <img src="${image.webPath}" alt="Water photo preview" />
+              </div>
+            `;
+          }
+          const cameraBtnText = document.getElementById("cameraBtnText");
+          if (cameraBtnText) {
+            cameraBtnText.textContent = "Retake Photo";
+          }
         }
 
         const submitBtn = document.getElementById("submitWaterBtn");
@@ -235,18 +273,18 @@ function openSubmitModal() {
 
   let uploadControlsHtml = "";
   if (isNative) {
-    // Native mobile app: Camera only (no gallery, no file picker)
+    // Native mobile app: Camera ONLY (no gallery, no file picker, no drag & drop)
     uploadControlsHtml = `
-      <div style="margin-bottom:14px;">
-        <button type="button" class="btn btn-primary btn-block" id="cameraBtn" style="display:flex; align-items:center; justify-content:center; gap:8px; font-size:1rem; padding:12px;">
-          &#128247; <span id="cameraBtnText">Take Photo</span>
+      <div id="cameraControls" style="margin-bottom:14px;">
+        <button type="button" class="btn btn-primary btn-block" id="cameraBtn" style="display:flex; align-items:center; justify-content:center; gap:8px; font-size:1.05rem; padding:14px; border-radius:10px;">
+          &#128247; Take Photo
         </button>
       </div>
     `;
   } else {
     // Web browser: Camera and file drop input
     uploadControlsHtml = `
-      <div style="display:flex; gap:10px; margin-bottom:12px;">
+      <div id="cameraControls" style="display:flex; gap:10px; margin-bottom:12px;">
         <button type="button" class="btn btn-secondary" id="cameraBtn" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; font-size:0.9rem; padding:10px 8px;">
           &#128247; <span id="cameraBtnText">Take Photo</span>
         </button>
