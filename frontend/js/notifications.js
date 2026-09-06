@@ -281,24 +281,35 @@
         })
         .join("");
 
-      // Bind click on items to mark as read
+      // Bind click on items to mark as read and delete
       listEl.querySelectorAll(".notif-item").forEach((el) => {
         el.addEventListener("click", async () => {
           const id = el.getAttribute("data-id");
-          const isRead = el.getAttribute("data-read") === "true";
-          if (!isRead) {
-            el.classList.remove("is-unread");
-            el.setAttribute("data-read", "true");
-            const dot = el.querySelector(".notif-item__unread-dot");
-            if (dot) dot.remove();
-            unreadCount = Math.max(0, unreadCount - 1);
-            updateBadgeUI();
-            try {
-              const api = getApi();
-              if (api) await api.markNotificationRead(activeGroupId, id);
-            } catch (e) {
-              console.warn("Could not mark notif read on server:", e);
+          // Immediately remove from UI
+          el.style.opacity = "0";
+          el.style.transform = "translateX(10px)";
+          el.style.transition = "all 0.18s ease";
+          setTimeout(() => {
+            el.remove();
+            if (listEl.querySelectorAll(".notif-item").length === 0) {
+              listEl.innerHTML = `
+                <div class="notif-empty">
+                  <div class="notif-empty__icon">✨</div>
+                  <p>You're all caught up!</p>
+                  <span style="font-size:0.78rem; opacity:0.7;">No new turn reminders or alerts.</span>
+                </div>
+              `;
             }
+          }, 180);
+
+          unreadCount = Math.max(0, unreadCount - 1);
+          updateBadgeUI();
+
+          try {
+            const api = getApi();
+            if (api) await api.markNotificationRead(activeGroupId, id);
+          } catch (e) {
+            console.warn("Could not delete notification on server:", e);
           }
         });
       });
@@ -322,13 +333,17 @@
       await api.markAllNotificationsRead(activeGroupId);
       unreadCount = 0;
       updateBadgeUI();
-      const unreadItems = document.querySelectorAll("#wmNotifList .notif-item.is-unread");
-      unreadItems.forEach((item) => {
-        item.classList.remove("is-unread");
-        item.setAttribute("data-read", "true");
-        const dot = item.querySelector(".notif-item__unread-dot");
-        if (dot) dot.remove();
-      });
+
+      const listEl = document.getElementById("wmNotifList");
+      if (listEl) {
+        listEl.innerHTML = `
+          <div class="notif-empty">
+            <div class="notif-empty__icon">✨</div>
+            <p>You're all caught up!</p>
+            <span style="font-size:0.78rem; opacity:0.7;">All notifications marked as read and deleted.</span>
+          </div>
+        `;
+      }
     } catch (err) {
       alert("Failed to mark all as read: " + err.message);
     }

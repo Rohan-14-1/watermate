@@ -12,7 +12,7 @@ async function listGroupNotifications(req, res, next) {
 
     const [notifications, unreadCount] = await Promise.all([
       prisma.notification.findMany({
-        where: { groupId, userId },
+        where: { groupId, userId, isRead: false },
         orderBy: { createdAt: "desc" },
         take: 50,
       }),
@@ -56,7 +56,7 @@ async function sendManualNotification(req, res, next) {
 
 /**
  * POST /api/groups/:groupId/notifications/:notificationId/read
- * Marks a specific notification as read.
+ * Marks a specific notification as read by deleting it.
  */
 async function markNotificationRead(req, res, next) {
   try {
@@ -70,12 +70,11 @@ async function markNotificationRead(req, res, next) {
       return res.status(404).json({ message: "Notification not found." });
     }
 
-    const updated = await prisma.notification.update({
+    await prisma.notification.delete({
       where: { id: notificationId },
-      data: { isRead: true, readAt: new Date() },
     });
 
-    res.json({ notification: updated });
+    res.json({ message: "Notification marked as read and deleted.", notificationId });
   } catch (err) {
     next(err);
   }
@@ -83,19 +82,18 @@ async function markNotificationRead(req, res, next) {
 
 /**
  * POST /api/groups/:groupId/notifications/read-all
- * Marks all notifications for this group as read.
+ * Marks all notifications for this group as read by deleting them.
  */
 async function markAllNotificationsRead(req, res, next) {
   try {
     const groupId = req.group.id;
     const userId = req.user.id;
 
-    await prisma.notification.updateMany({
-      where: { groupId, userId, isRead: false },
-      data: { isRead: true, readAt: new Date() },
+    const result = await prisma.notification.deleteMany({
+      where: { groupId, userId },
     });
 
-    res.json({ message: "All notifications marked as read." });
+    res.json({ message: "All notifications marked as read and deleted.", deletedCount: result.count });
   } catch (err) {
     next(err);
   }
