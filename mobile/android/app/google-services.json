@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "123456789012",
-    "project_id": "watermate-app",
-    "storage_bucket": "watermate-app.appspot.com"
+    "project_number": "881432091788",
+    "project_id": "watermate-fdcb9",
+    "storage_bucket": "watermate-fdcb9.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:123456789012:android:0123456789abcdef012345",
+        "mobilesdk_app_id": "1:881432091788:android:4abaa3e12177a518626fa9",
         "android_client_info": {
           "package_name": "com.watermate.app"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDummyKeyForWaterMateAppInitialization00"
+          "current_key": "AIzaSyBv-a3isiArpopX8g-h0aVOlkutZhMatGw"
         }
       ],
       "services": {
