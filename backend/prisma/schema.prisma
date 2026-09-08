@@ -39,6 +39,11 @@ model User {
   chickenDeliveriesBrought  ChickenDelivery[] @relation("ChickenBroughtBy")
   chickenDeliveriesApproved ChickenDelivery[] @relation("ChickenApprovedBy")
 
+  // UNO Game relationships
+  createdUnoGames UnoGame[]   @relation("UnoGameCreator")
+  unoPlayers      UnoPlayer[]
+  wonUnoGames     UnoGame[]   @relation("UnoGameWinner")
+
   @@map("users")
 }
 
@@ -57,6 +62,7 @@ model Group {
   chatMessages      ChatMessage[]
   chickenTurn       ChickenTurn?
   chickenDeliveries ChickenDelivery[]
+  unoGames          UnoGame[]
 
   @@index([createdBy])
   @@map("groups")
@@ -230,4 +236,64 @@ model ChickenDelivery {
   @@index([groupId, createdAt])
   @@index([groupId, status])
   @@map("chicken_deliveries")
+}
+
+// -------------------------------------------------------------
+// WaterMate UNO Multiplayer Game System
+// -------------------------------------------------------------
+
+model UnoGame {
+  id                String    @id @default(uuid())
+  groupId           String
+  creatorId         String
+  status            String    @default("WAITING") // WAITING, PLAYING, FINISHED, CANCELLED
+  direction         Int       @default(1) // 1 = clockwise, -1 = counter-clockwise
+  currentColor      String?   // RED, BLUE, GREEN, YELLOW
+  topDiscardCard    Json?     // { id, color, value }
+  discardPile       Json      @default("[]")
+  drawPile          Json      @default("[]")
+  currentPlayerId   String?
+  turnNumber        Int       @default(0)
+  version           Int       @default(0) // Concurrency version
+  winnerId          String?
+  lastAction        Json?     // { type, userId, text, card }
+  hasDrawnThisTurn  Boolean   @default(false)
+  drawnCardPlayable Boolean   @default(false)
+  unoCallWindow     Json?     // { playerId, expiresAt, caught }
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  group   Group       @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  creator User        @relation("UnoGameCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  winner  User?       @relation("UnoGameWinner", fields: [winnerId], references: [id], onDelete: SetNull)
+  players UnoPlayer[]
+
+  @@index([groupId, status])
+  @@index([creatorId])
+  @@index([winnerId])
+  @@map("uno_games")
+}
+
+model UnoPlayer {
+  id           String   @id @default(uuid())
+  gameId       String
+  userId       String
+  order        Int      // Seat/position 0..N-1
+  cards        Json     @default("[]") // Private hand: array of card objects [{ id, color, value }]
+  cardCount    Int      @default(0)    // Authoritative public card count
+  isReady      Boolean  @default(false)
+  hasCalledUno Boolean  @default(false)
+  unoSafe      Boolean  @default(false)
+  joinedAt     DateTime @default(now())
+
+  game UnoGame @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  user User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, userId])
+  @@unique([gameId, order])
+  @@index([gameId])
+  @@index([userId])
+  @@map("uno_players")
 }
