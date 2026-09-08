@@ -269,6 +269,38 @@ const Api = {
     apiRequest("/notifications/test-self", {
       method: "POST",
     }),
+
+  // UNO Multiplayer Game
+  getUnoConfig: () => apiRequest("/uno/config"),
+  createUnoGame: (groupId) =>
+    apiRequest("/uno/games", {
+      method: "POST",
+      body: JSON.stringify({ groupId }),
+    }),
+  listUnoGames: (groupId) => apiRequest(`/uno/groups/${groupId}/games`),
+  getUnoGame: (gameId) => apiRequest(`/uno/games/${gameId}`),
+  joinUnoGame: (gameId) =>
+    apiRequest(`/uno/games/${gameId}/join`, { method: "POST" }),
+  leaveUnoGame: (gameId) =>
+    apiRequest(`/uno/games/${gameId}/leave`, { method: "POST" }),
+  toggleUnoReady: (gameId) =>
+    apiRequest(`/uno/games/${gameId}/ready`, { method: "POST" }),
+  startUnoGame: (gameId) =>
+    apiRequest(`/uno/games/${gameId}/start`, { method: "POST" }),
+  playUnoCard: (gameId, payload) =>
+    apiRequest(`/uno/games/${gameId}/play`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  drawUnoCard: (gameId) =>
+    apiRequest(`/uno/games/${gameId}/draw`, { method: "POST" }),
+  passUnoTurn: (gameId) =>
+    apiRequest(`/uno/games/${gameId}/pass`, { method: "POST" }),
+  callUno: (gameId) =>
+    apiRequest(`/uno/games/${gameId}/uno`, { method: "POST" }),
+  catchUno: (gameId) =>
+    apiRequest(`/uno/games/${gameId}/catch-uno`, { method: "POST" }),
+  getUnoHistory: (groupId) => apiRequest(`/uno/groups/${groupId}/history`),
 };
 
 // Global export for Web, Android, and iOS Capacitor environments
@@ -327,3 +359,20 @@ async function requireLoggedIn() {
     return null;
   }
 }
+
+function renderUserBox(user) {
+  const box = document.getElementById("userBox");
+  if (!box || !user) return;
+  box.innerHTML = `
+    <div class="avatar">${initials(user.name)}</div>
+    <button class="btn-link" id="logoutBtn">Log out</button>
+  `;
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async () => {
+      await Api.logout();
+      window.location.href = "login.html";
+    });
+  }
+}
+
