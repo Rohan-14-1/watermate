@@ -14,6 +14,7 @@ const chatRoutes = require("./routes/chatRoutes");
 const groupNotificationRoutes = require("./routes/groupNotificationRoutes");
 const deviceRoutes = require("./routes/deviceRoutes");
 const cronRoutes = require("./routes/cronRoutes");
+const unoRoutes = require("./routes/unoRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -41,6 +42,7 @@ app.use("/api/groups/:groupId/chicken", chickenRoutes);
 app.use("/api/groups/:groupId/chat", chatRoutes);
 app.use("/api/groups/:groupId/notifications", groupNotificationRoutes);
 app.use("/api/groups/:groupId", waterRoutes);
+app.use("/api/uno", unoRoutes);
 app.use("/api/notifications", deviceRoutes);
 app.use("/api/cron", cronRoutes);
 
