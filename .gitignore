@@ -4,6 +4,6 @@ backend/uploads/*
 !backend/uploads/.gitkeep
 *.log
 .DS_Store
-public/
+/public/
 *firebase-service-account*.json
 *-firebase-adminsdk-*.json
