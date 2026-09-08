@@ -287,6 +287,55 @@
   border-radius: 12px;
 }
 
+.uno-lobby-share-box {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.uno-lobby-share-label {
+  display: block;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.uno-lobby-share-row {
+  display: flex;
+  gap: 8px;
+}
+
+.uno-lobby-share-row input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 8px 12px;
+  color: #cbd5e1;
+  font-size: 0.82rem;
+  font-family: monospace;
+  outline: none;
+}
+
+.uno-lobby-share-row .btn {
+  padding: 8px 16px !important;
+  font-size: 0.85rem !important;
+  border-radius: 10px !important;
+  white-space: nowrap;
+}
+
+.uno-lobby-tip {
+  margin: 12px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
 /* ================================================= */
 /* 2. GAMEPLAY VIEW */
 /* ================================================= */
