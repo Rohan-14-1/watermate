@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b3b45" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Your groups · WaterMate</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar__brand">
+        <span class="topbar__drop"></span>
+        WaterMate
+      </div>
+      <nav class="topbar__nav">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="members.html">Members</a>
+        <a href="chat.html">Chat</a>
+        <a href="games.html">Games</a>
+        <a href="history.html">History</a>
+        <a href="group.html" class="is-active">Settings</a>
+      </nav>
+      <div class="topbar__user" id="userBox"></div>
+    </header>
+
+    <main class="main">
+      <div id="pageAlert"></div>
+
+      <div class="group-heading">
+        <h1>Settings & Groups</h1>
+      </div>
+      <p class="text-muted">Manage your flat, invite roommates, or switch between rotations.</p>
+
+      <!-- Account profile overview -->
+      <div class="card" style="margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div class="avatar" id="settingsAvatar" style="width:46px;height:46px;font-size:1.15rem;">?</div>
+          <div>
+            <div id="settingsUserName" style="font-weight:700;font-size:1.05rem;color:var(--ocean-900);">Loading&hellip;</div>
+            <div id="settingsUserEmail" style="font-size:0.85rem;color:var(--ink-soft);">&nbsp;</div>
+          </div>
+        </div>
+        <button class="btn btn-secondary" id="settingsLogoutBtn" style="font-size:0.88rem;padding:8px 18px;">Log out</button>
+      </div>
+
+      <!-- Biometric Settings (Native Mobile) -->
+      <div class="card" id="biometricSettingsCard" style="display:none;margin-bottom:22px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="font-size:1.6rem;" id="biometricSettingsIcon">&#128100;</div>
+            <div>
+              <div style="font-weight:700;color:var(--ocean-900);" id="biometricSettingsTitle">Biometric Sign-In</div>
+              <div class="text-muted" style="font-size:0.82rem;" id="biometricSettingsSub">Quick login using Face ID</div>
+            </div>
+          </div>
+          <span class="badge badge-success" id="biometricBadge" style="font-size:0.82rem;padding:6px 12px;">&#10003; Active</span>
+        </div>
+      </div>
+
+      <!-- Active Group Settings Section -->
+      <div class="section-title" id="activeGroupSectionTitle" style="display:none;">ACTIVE FLAT SETTINGS</div>
+      <div class="card" id="activeGroupCard" style="display:none;margin-bottom:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;">
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+              <h3 id="activeGroupName" style="margin:0;color:var(--ocean-900);">&mdash;</h3>
+              <span id="activeGroupRoleBadge" class="badge">Member</span>
+            </div>
+            <div class="text-muted" style="font-size:0.85rem;">
+              Invite Code: <strong id="activeGroupInviteCode" style="font-family:monospace;letter-spacing:1px;color:var(--ocean-800);">&mdash;</strong>
+              &middot; <span id="activeGroupMemberCount">0 members</span>
+            </div>
+          </div>
+          <div id="activeGroupActions" style="display:flex;gap:10px;flex-wrap:wrap;">
+            <!-- Rendered dynamically by group.js -->
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">YOUR FLAT GROUPS</div>
+      <div id="groupsSection">
+        <div class="loading-row"><div class="spinner"></div><span>Loading your groups&hellip;</span></div>
+      </div>
+
+      <div class="section-title">CREATE OR JOIN A GROUP</div>
+      <div class="two-col">
+        <div class="card">
+          <h3>Create a group</h3>
+          <p class="text-muted">Start a rotation for your flat and get an invite code to share.</p>
+          <form id="createGroupForm">
+            <div class="field">
+              <label for="groupName">Group name</label>
+              <input type="text" id="groupName" placeholder="Sunrise Apartment" required />
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="createBtn">Create group</button>
+          </form>
+          <div id="createResult"></div>
+        </div>
+
+        <div class="card">
+          <h3>Join a group</h3>
+          <p class="text-muted">Enter the invite code a roommate shared with you.</p>
+          <form id="joinGroupForm">
+            <div class="field">
+              <label for="inviteCode">Invite code</label>
+              <input type="text" id="inviteCode" placeholder="WM4821" style="text-transform:uppercase" required />
+            </div>
+            <button type="submit" class="btn btn-outline btn-block" id="joinBtn">Join group</button>
+          </form>
+          <div id="joinResult"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Leave Group Confirmation Modal (Normal Member) -->
+    <div class="modal-overlay" id="leaveGroupModal" hidden>
+      <div class="modal" style="max-width:440px;">
+        <div class="modal__head">
+          <h3>Leave this group?</h3>
+          <button class="modal__close" id="closeLeaveModalBtn" aria-label="Close">&times;</button>
+        </div>
+        <p style="margin-top:12px;margin-bottom:18px;font-size:0.95rem;color:var(--ink-soft);line-height:1.5;">
+          You will no longer be able to see this group's members, water history, or current turn.
+        </p>
+        <div id="leaveModalAlert"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button type="button" class="btn btn-secondary" id="cancelLeaveBtn">Cancel</button>
+          <button type="button" class="btn btn-danger-solid" id="confirmLeaveBtn">Leave Group</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Leave Group Modal (Prompts to Transfer or Delete) -->
+    <div class="modal-overlay" id="adminLeaveModal" hidden>
+      <div class="modal" style="max-width:460px;">
+        <div class="modal__head">
+          <h3>You're the group admin</h3>
+          <button class="modal__close" id="closeAdminLeaveModalBtn" aria-label="Close">&times;</button>
+        </div>
+        <p style="margin-top:12px;margin-bottom:20px;font-size:0.95rem;color:var(--ink-soft);line-height:1.5;">
+          Before leaving, transfer admin ownership to another member or delete the group.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <button type="button" class="btn btn-primary btn-block" id="adminLeaveToTransferBtn">&#128101; Transfer Admin</button>
+          <button type="button" class="btn btn-danger-solid btn-block" id="adminLeaveToDeleteBtn">&#128465; Delete Group</button>
+          <button type="button" class="btn btn-secondary btn-block" id="cancelAdminLeaveBtn">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transfer Admin Modal -->
+    <div class="modal-overlay" id="transferAdminModal" hidden>
+      <div class="modal" style="max-width:440px;">
+        <div class="modal__head">
+          <h3>Transfer Admin</h3>
+          <button class="modal__close" id="closeTransferModalBtn" aria-label="Close">&times;</button>
+        </div>
+        <div id="transferModalAlert"></div>
+        <div id="transferStepSelect">
+          <p style="margin-top:12px;margin-bottom:14px;font-size:0.95rem;color:var(--ink-soft);line-height:1.5;">
+            Select a group member to become the new group admin:
+          </p>
+          <div class="field" style="margin-bottom:18px;">
+            <label for="newAdminSelect">Select Member</label>
+            <select id="newAdminSelect" style="width:100%;padding:10px;border-radius:8px;border:1px solid #dcdad5;font-size:0.95rem;background:#fff;"></select>
+          </div>
+          <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button type="button" class="btn btn-secondary" id="cancelTransferBtn">Cancel</button>
+            <button type="button" class="btn btn-primary" id="continueTransferBtn">Continue</button>
+          </div>
+        </div>
+        <div id="transferStepConfirm" style="display:none;">
+          <p id="transferConfirmText" style="margin-top:12px;margin-bottom:8px;font-weight:600;color:var(--ocean-900);font-size:1.05rem;">
+            Transfer admin to member?
+          </p>
+          <p style="margin-bottom:20px;font-size:0.92rem;color:var(--ink-soft);line-height:1.5;">
+            This member will become the new group admin. You will remain in the group as a regular member.
+          </p>
+          <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button type="button" class="btn btn-secondary" id="backTransferBtn">Cancel</button>
+            <button type="button" class="btn btn-primary" id="confirmTransferBtn">Transfer Admin</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Group Modal (Admin Only, Destructive) -->
+    <div class="modal-overlay" id="deleteGroupModal" hidden>
+      <div class="modal" style="max-width:460px;">
+        <div class="modal__head">
+          <h3 style="color:#b3432f;">Delete this group?</h3>
+          <button class="modal__close" id="closeDeleteModalBtn" aria-label="Close">&times;</button>
+        </div>
+        <div id="deleteModalAlert"></div>
+        <p style="margin-top:12px;margin-bottom:14px;font-size:0.95rem;color:var(--ink-soft);line-height:1.5;">
+          This will permanently delete the group and its members, water history, and group data. This action cannot be undone.
+        </p>
+        <div class="field" style="margin-bottom:18px;">
+          <label for="confirmDeleteGroupNameInput" id="confirmDeleteLabel" style="font-size:0.9rem;font-weight:600;color:var(--ocean-900);">
+            Type &ldquo;<span id="expectedGroupName"></span>&rdquo; to confirm deletion:
+          </label>
+          <input type="text" id="confirmDeleteGroupNameInput" placeholder="Enter group name exactly" autocomplete="off" />
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button type="button" class="btn btn-secondary" id="cancelDeleteBtn">Cancel</button>
+          <button type="button" class="btn btn-danger-solid" id="confirmDeleteBtn" disabled>Delete Group</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile App Bottom Navigation Bar -->
+    <nav class="bottom-nav" aria-label="Mobile Navigation">
+      <a href="dashboard.html" class="bottom-nav__item">
+        <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <span>Home</span>
+      </a>
+      <a href="members.html" class="bottom-nav__item">
+        <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <span>Order</span>
+      </a>
+      <a href="chat.html" class="bottom-nav__item">
+        <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <span>Chat</span>
+      </a>
+      <a href="games.html" class="bottom-nav__item">
+        <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="8" cy="12" r="1.5"></circle><circle cx="16" cy="12" r="1.5"></circle><line x1="8" y1="9" x2="8" y2="15"></line><line x1="5" y1="12" x2="11" y2="12"></line></svg>
+        <span>Games</span>
+      </a>
+      <a href="history.html" class="bottom-nav__item">
+        <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span>History</span>
+      </a>
+      <a href="group.html" class="bottom-nav__item is-active">
+        <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Settings</span>
+      </a>
+    </nav>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/group.js"></script>
+</body>
+</html>
