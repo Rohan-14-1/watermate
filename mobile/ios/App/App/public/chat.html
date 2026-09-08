@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b3b45" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Team Chat · WaterMate</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/chat.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar__brand">
+        <span class="topbar__drop"></span>
+        WaterMate
+      </div>
+      <nav class="topbar__nav">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="members.html">Members</a>
+        <a href="chat.html" class="is-active">Chat</a>
+        <a href="games.html">Games</a>
+        <a href="history.html">History</a>
+        <a href="group.html">Settings</a>
+      </nav>
+      <div class="topbar__user" id="userBox"></div>
+    </header>
+
+    <main class="main">
+      <div id="pageAlert"></div>
+
+      <div class="chat-container">
+        <!-- 7-Day Auto-Cleanup Disclosure Notice -->
+        <div class="chat-retention-banner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span>Team chat &amp; media automatically expire and are purged after 7 days</span>
+        </div>
+
+        <!-- Chat Header -->
+        <div class="chat-header">
+          <div class="chat-header__info">
+            <div class="chat-header__avatar" id="chatGroupAvatar">💬</div>
+            <div>
+              <h2 class="chat-header__title" id="chatGroupName">Team Chat</h2>
+              <p class="chat-header__sub" id="chatMembersCount">Connecting to team&hellip;</p>
+            </div>
+          </div>
+          <button type="button" class="btn btn-secondary" id="chatSendAlertBtn" style="padding:6px 12px; font-size:0.8rem;">
+            📢 Alert Team
+          </button>
+        </div>
+
+        <!-- Chat Messages Timeline -->
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-empty">
+            <div class="spinner" style="margin:0 auto 12px;"></div>
+            <p>Loading team chat&hellip;</p>
+          </div>
+        </div>
+
+        <!-- Selected Attachment Preview Pill -->
+        <div id="chatFilePreview" class="chat-file-preview" style="display:none;">
+          <div class="chat-file-preview__info">
+            <span id="chatFileIcon">📎</span>
+            <span id="chatFileName" style="font-weight:600;"></span>
+            <span id="chatFileSize" style="opacity:0.7; font-size:0.75rem;"></span>
+          </div>
+          <button type="button" id="chatFileRemove" class="chat-file-preview__remove" aria-label="Remove attachment">&times;</button>
+        </div>
+
+        <!-- Chat Input Composer -->
+        <form id="chatForm" class="chat-composer">
+          <input
+            type="file"
+            id="chatFileInput"
+            accept="image/*,video/*,.pdf,.doc,.docx,.txt"
+            style="position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; overflow: hidden;"
+          />
+          <button type="button" class="chat-attach-btn" id="chatAttachBtn" title="Attach file or photo (max 15MB)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+            </svg>
+          </button>
+          <input
+            type="text"
+            id="chatTextInput"
+            class="chat-composer__input"
+            placeholder="Type a message to your team..."
+            autocomplete="off"
+            maxlength="2000"
+          />
+          <button type="submit" class="chat-send-btn" id="chatSendBtn" disabled aria-label="Send message">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </main>
+
+    <!-- Attachment Options Modal (Native Mobile + Web) -->
+    <div class="wm-modal-overlay" id="chatAttachModal" hidden>
+      <div class="wm-modal chat-attach-modal">
+        <div class="wm-modal__head">
+          <h3>Add Attachment</h3>
+          <button type="button" class="wm-modal__close" id="chatAttachClose" aria-label="Close">&times;</button>
+        </div>
+        <div class="chat-attach-options">
+          <button type="button" class="chat-attach-opt-btn" id="chatAttachCameraBtn">
+            <span class="chat-attach-opt-icon">📷</span>
+            <div class="chat-attach-opt-text">
+              <strong>Take Photo</strong>
+              <small>Capture directly with camera</small>
+            </div>
+          </button>
+          <button type="button" class="chat-attach-opt-btn" id="chatAttachGalleryBtn">
+            <span class="chat-attach-opt-icon">🖼️</span>
+            <div class="chat-attach-opt-text">
+              <strong>Photo Library</strong>
+              <small>Choose photo or video</small>
+            </div>
+          </button>
+          <button type="button" class="chat-attach-opt-btn" id="chatAttachFileBtn">
+            <span class="chat-attach-opt-icon">📄</span>
+            <div class="chat-attach-opt-text">
+              <strong>Document / File</strong>
+              <small>PDF, Word, or other files (up to 15MB)</small>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile App Bottom Navigation Bar -->
+    <nav class="bottom-nav" aria-label="Mobile Navigation">
+      <a href="dashboard.html" class="bottom-nav__item">
+        <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <span>Home</span>
+      </a>
+      <a href="members.html" class="bottom-nav__item">
+        <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <span>Order</span>
+      </a>
+      <a href="chat.html" class="bottom-nav__item is-active">
+        <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <span>Chat</span>
+      </a>
+      <a href="games.html" class="bottom-nav__item">
+        <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="8" cy="12" r="1.5"></circle><circle cx="16" cy="12" r="1.5"></circle><line x1="8" y1="9" x2="8" y2="15"></line><line x1="5" y1="12" x2="11" y2="12"></line></svg>
+        <span>Games</span>
+      </a>
+      <a href="history.html" class="bottom-nav__item">
+        <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span>History</span>
+      </a>
+      <a href="group.html" class="bottom-nav__item">
+        <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Settings</span>
+      </a>
+    </nav>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/chat.js"></script>
+</body>
+</html>
