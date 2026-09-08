@@ -175,9 +175,24 @@
   // FETCH & RENDER GAME STATE
   // =======================================================
 
+  let isAutoJoining = false;
+
   async function fetchAndRenderGame() {
     try {
-      const game = await Api.getUnoGame(gameId);
+      let game = await Api.getUnoGame(gameId);
+
+      // Auto-join: If current authenticated group member is not yet in the lobby, join them automatically!
+      if (!game.myPlayer && game.status === "WAITING" && !isAutoJoining) {
+        isAutoJoining = true;
+        try {
+          game = await Api.joinUnoGame(gameId);
+        } catch (joinErr) {
+          console.warn("Auto-join notice:", joinErr);
+        } finally {
+          isAutoJoining = false;
+        }
+      }
+
       renderGame(game);
     } catch (err) {
       showAlert(err.message || "Failed to load game state.");
@@ -239,10 +254,23 @@
       })
       .join("");
 
-    // Toggle ready button state
+    // Toggle ready / Join lobby button state
     if (game.myPlayer) {
+      btnToggleReady.style.display = "block";
       btnToggleReady.textContent = game.myPlayer.isReady ? "Mark Not Ready" : "Mark Ready";
       btnToggleReady.className = game.myPlayer.isReady ? "btn btn-secondary btn-large" : "btn btn-primary btn-large";
+    } else if (game.status === "WAITING") {
+      btnToggleReady.style.display = "block";
+      btnToggleReady.textContent = "Join Lobby";
+      btnToggleReady.className = "btn btn-primary btn-large";
+    } else {
+      btnToggleReady.style.display = "none";
+    }
+
+    // Share link input population
+    const shareInput = document.getElementById("lobbyShareInput");
+    if (shareInput) {
+      shareInput.value = window.location.href;
     }
 
     // Start game button visibility (Creator only)
@@ -575,14 +603,43 @@
     if (isSubmitting) return;
     isSubmitting = true;
     try {
-      const updated = await Api.toggleUnoReady(gameId);
-      renderGame(updated);
+      if (!currentGame || !currentGame.myPlayer) {
+        // Not in lobby yet: join and immediately update view
+        const joined = await Api.joinUnoGame(gameId);
+        renderGame(joined);
+      } else {
+        const updated = await Api.toggleUnoReady(gameId);
+        renderGame(updated);
+      }
     } catch (err) {
-      showAlert(err.message || "Could not toggle ready.");
+      showAlert(err.message || "Could not update lobby state.");
     } finally {
       isSubmitting = false;
     }
   });
+
+  const btnCopyShareLink = document.getElementById("btnCopyShareLink");
+  if (btnCopyShareLink) {
+    btnCopyShareLink.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        btnCopyShareLink.textContent = "Copied!";
+        setTimeout(() => {
+          btnCopyShareLink.textContent = "Copy Link";
+        }, 2000);
+      } catch (_) {
+        const shareInput = document.getElementById("lobbyShareInput");
+        if (shareInput) {
+          shareInput.select();
+          document.execCommand("copy");
+          btnCopyShareLink.textContent = "Copied!";
+          setTimeout(() => {
+            btnCopyShareLink.textContent = "Copy Link";
+          }, 2000);
+        }
+      }
+    });
+  }
 
   btnStartGame.addEventListener("click", async () => {
     if (isSubmitting) return;
