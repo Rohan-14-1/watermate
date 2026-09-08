@@ -121,7 +121,7 @@
         ? `<a href="uno.html?gameId=${g.id}" class="btn btn-primary btn-game-action">Enter Game &rarr;</a>`
         : isPlaying
         ? `<span class="text-muted" style="font-size:0.85rem;">Match in progress</span>`
-        : `<a href="uno.html?gameId=${g.id}" class="btn btn-secondary btn-game-action">Join Lobby &rarr;</a>`;
+        : `<button type="button" class="btn btn-secondary btn-game-action btn-join-lobby" data-game-id="${g.id}">Join Lobby &rarr;</button>`;
 
       return `
         <div class="card game-room-card ${isPlaying ? "is-playing" : "is-waiting"}">
@@ -144,6 +144,22 @@
     }).join("");
 
     gamesListContainer.innerHTML = `<div class="games-grid">${cardsHtml}</div>`;
+
+    // Attach click listeners to Join Lobby buttons
+    gamesListContainer.querySelectorAll(".btn-join-lobby").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const targetGameId = btn.getAttribute("data-game-id");
+        btn.disabled = true;
+        btn.textContent = "Joining...";
+        try {
+          await Api.joinUnoGame(targetGameId);
+        } catch (err) {
+          console.warn("Join lobby notice:", err);
+        }
+        window.location.href = `uno.html?gameId=${targetGameId}`;
+      });
+    });
   }
 
   async function loadHistory() {
