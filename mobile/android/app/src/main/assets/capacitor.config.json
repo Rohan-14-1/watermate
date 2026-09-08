@@ -1,0 +1,24 @@
+{
+	"appId": "com.watermate.app",
+	"appName": "WaterMate",
+	"webDir": "www",
+	"server": {
+		"androidScheme": "https",
+		"iosScheme": "capacitor",
+		"cleartext": true
+	},
+	"plugins": {
+		"Camera": {
+			"presentationStyle": "fullscreen"
+		},
+		"PushNotifications": {
+			"presentationOptions": [
+				"badge",
+				"sound",
+				"alert",
+				"banner",
+				"list"
+			]
+		}
+	}
+}
