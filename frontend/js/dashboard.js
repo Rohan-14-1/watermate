@@ -201,6 +201,18 @@ function renderDashboard(data) {
 
     ${chickenCardHtml}
 
+    <div class="uno-quick-card">
+      <div class="uno-quick-card__badge">&#127183; Multiplayer Game</div>
+      <div class="uno-quick-card__content">
+        <div class="uno-quick-card__icon">&#127183;</div>
+        <div class="uno-quick-card__info">
+          <h3>UNO with Roommates</h3>
+          <p>Real-time multiplayer UNO for ${escapeHtml(data.group.name)}. Play cards, call UNO, and win!</p>
+        </div>
+        <a href="games.html" class="uno-quick-card__btn">Play UNO &rarr;</a>
+      </div>
+    </div>
+
     <div class="stats-grid">
       <div class="stat-card">
         <div class="value">${data.stats.totalDeliveries}</div>
