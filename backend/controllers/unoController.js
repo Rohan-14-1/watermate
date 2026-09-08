@@ -302,7 +302,7 @@ async function joinGame(req, res, next) {
       // Check duplicate
       const alreadyJoined = game.players.find((p) => p.userId === req.user.id);
       if (alreadyJoined) {
-        return game; // Already in game
+        return { game, newlyJoined: false };
       }
 
       if (game.players.length >= 10) {
@@ -321,20 +321,24 @@ async function joinGame(req, res, next) {
         }
       });
 
-      return tx.unoGame.update({
+      const updatedGame = await tx.unoGame.update({
         where: { id: gameId },
         data: {
           lastAction: { type: "PLAYER_JOINED", text: `${req.user.name} joined the lobby.` },
           version: { increment: 1 }
         }
       });
+
+      return { game: updatedGame, newlyJoined: true };
     });
 
     const fullGame = await fetchFullGame(gameId);
-    unoRealtimeService.broadcastGameUpdate(gameId, {
-      status: "WAITING",
-      lastAction: { type: "PLAYER_JOINED", text: `${req.user.name} joined the lobby.` }
-    });
+    if (result && result.newlyJoined) {
+      unoRealtimeService.broadcastGameUpdate(gameId, {
+        status: "WAITING",
+        lastAction: { type: "PLAYER_JOINED", text: `${req.user.name} joined the lobby.` }
+      });
+    }
 
     res.json(buildSanitizedGameState(fullGame, req.user.id));
   } catch (err) {
