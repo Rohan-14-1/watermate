@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b3b45" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>UNO Arena · WaterMate</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/uno.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body class="uno-page-body">
+  <div class="uno-arena-shell">
+    <!-- Arena Header Bar -->
+    <header class="uno-header">
+      <div class="uno-header__left">
+        <a href="games.html" class="uno-back-btn" id="btnBackGames">
+          &larr; <span class="uno-back-text">Games</span>
+        </a>
+        <div class="uno-header__title">
+          <span class="uno-logo-text">UNO</span>
+          <span class="uno-status-badge" id="arenaStatusBadge">LOBBY</span>
+        </div>
+      </div>
+      <div class="uno-header__right">
+        <button type="button" class="uno-sound-btn" id="btnToggleSound" title="Toggle Sound">
+          &#128266;
+        </button>
+        <button type="button" class="btn btn-secondary uno-leave-btn" id="btnLeaveGame">
+          Leave
+        </button>
+      </div>
+    </header>
+
+    <div id="pageAlert" class="uno-alert-container"></div>
+
+    <!-- Main Container -->
+    <main class="uno-main">
+      <!-- 1. LOBBY VIEW (WAITING STATE) -->
+      <section id="lobbyView" class="uno-lobby-view" style="display:none;">
+        <div class="card uno-lobby-card">
+          <div class="uno-lobby-header">
+            <h2>UNO Game Lobby</h2>
+            <p class="text-muted" id="lobbySubtext">Waiting for players to join and get ready (2–10 players required).</p>
+          </div>
+
+          <div class="uno-lobby-players" id="lobbyPlayersList">
+            <div class="loading-row"><div class="spinner"></div><span>Loading lobby&hellip;</span></div>
+          </div>
+
+          <div class="uno-lobby-actions">
+            <button type="button" class="btn btn-secondary btn-large" id="btnToggleReady">
+              Toggle Ready
+            </button>
+            <button type="button" class="btn btn-primary btn-large" id="btnStartGame" style="display:none;">
+              &#9654; Start Game
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. GAME ARENA VIEW (PLAYING / FINISHED) -->
+      <section id="gameplayView" class="uno-gameplay-view" style="display:none;">
+        <!-- Top Status & Direction Banner -->
+        <div class="uno-top-hud">
+          <div class="uno-turn-banner" id="turnBanner">
+            <div class="uno-turn-pulse"></div>
+            <span id="turnText">Waiting for game turn&hellip;</span>
+          </div>
+          <div class="uno-direction-indicator" id="directionIndicator" title="Play Direction">
+            <span class="uno-dir-arrow" id="dirArrow">&#8635;</span>
+            <span id="dirLabel">Clockwise</span>
+          </div>
+        </div>
+
+        <!-- Opponents Area -->
+        <div class="uno-opponents-area" id="opponentsArea">
+          <!-- Dynamically filled with opponents -->
+        </div>
+
+        <!-- Center Table -->
+        <div class="uno-table-felt">
+          <!-- Active Color Ring -->
+          <div class="uno-color-ring" id="activeColorRing"></div>
+
+          <!-- Discard Pile & Draw Pile -->
+          <div class="uno-piles-wrapper">
+            <!-- Draw Pile -->
+            <div class="uno-draw-pile" id="drawPileBtn" role="button" tabindex="0" title="Tap to draw a card">
+              <div class="uno-card uno-card--back">
+                <div class="uno-card__back-oval">UNO</div>
+              </div>
+              <div class="uno-pile-count" id="drawPileCountBadge">Deck</div>
+            </div>
+
+            <!-- Discard Pile -->
+            <div class="uno-discard-pile" id="discardPile">
+              <!-- Rendered top card -->
+            </div>
+          </div>
+
+          <!-- Last Action Toast -->
+          <div class="uno-action-pill" id="actionPill">Game in progress</div>
+        </div>
+
+        <!-- Gameplay Controls HUD -->
+        <div class="uno-controls-hud">
+          <button type="button" class="uno-hud-btn btn-draw" id="btnDrawCard">
+            &#127183; Draw Card
+          </button>
+          <button type="button" class="uno-hud-btn btn-pass" id="btnPassTurn" style="display:none;">
+            &#8677; Pass Turn
+          </button>
+          <button type="button" class="uno-hud-btn btn-uno" id="btnCallUno">
+            &#9889; UNO!
+          </button>
+          <button type="button" class="uno-hud-btn btn-catch" id="btnCatchUno" style="display:none;">
+            &#128680; Catch UNO!
+          </button>
+        </div>
+
+        <!-- Player Hand Dock -->
+        <div class="uno-hand-container">
+          <div class="uno-hand-title">
+            <span>Your Cards (<span id="handCountBadge">0</span>)</span>
+            <span class="uno-hand-hint" id="handHint">Select a playable card to play</span>
+          </div>
+          <div class="uno-hand-cards" id="playerHandCards">
+            <!-- Cards dynamically rendered here -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal: Choose Color for Wild / Wild Draw 4 -->
+    <div class="modal-overlay" id="colorPickerModal" hidden>
+      <div class="modal uno-color-modal">
+        <h3 style="text-align:center;margin-bottom:6px;">Choose Next Color</h3>
+        <p class="text-muted" style="text-align:center;font-size:0.88rem;margin-bottom:18px;">Pick a color for the active turn</p>
+        <div class="uno-color-grid">
+          <button type="button" class="uno-color-quad quad-red" data-color="RED">Red</button>
+          <button type="button" class="uno-color-quad quad-blue" data-color="BLUE">Blue</button>
+          <button type="button" class="uno-color-quad quad-green" data-color="GREEN">Green</button>
+          <button type="button" class="uno-color-quad quad-yellow" data-color="YELLOW">Yellow</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Winner / Game Over -->
+    <div class="modal-overlay" id="gameOverModal" hidden>
+      <div class="modal uno-gameover-modal">
+        <div class="uno-gameover-trophy">&#127942;</div>
+        <h2 id="gameOverTitle">Game Over!</h2>
+        <p class="uno-gameover-sub" id="gameOverSub">Congratulations to the winner!</p>
+        <div class="uno-gameover-actions">
+          <a href="games.html" class="btn btn-primary btn-large" style="width:100%;">
+            Return to Games
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/uno.js"></script>
+</body>
+</html>
