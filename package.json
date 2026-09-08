@@ -14,7 +14,10 @@
     "prisma:deploy": "prisma migrate deploy --schema=backend/prisma/schema.prisma",
     "prisma:push": "prisma db push --schema=backend/prisma/schema.prisma",
     "prisma:studio": "prisma studio --schema=backend/prisma/schema.prisma",
-    "seed": "node backend/prisma/seed.js"
+    "seed": "node backend/prisma/seed.js",
+    "mobile:sync": "cd mobile && npm run sync",
+    "mobile:android": "cd mobile && npm run open:android",
+    "mobile:ios": "cd mobile && npm run open:ios"
   },
   "dependencies": {
     "@prisma/client": "^5.19.1",
