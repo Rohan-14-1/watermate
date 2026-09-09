@@ -172,9 +172,15 @@
     clearAttachment();
   });
 
-  // Text input typing
+  // Text input typing & focus
   chatTextInput.addEventListener("input", () => {
     updateSendButtonState();
+  });
+
+  chatTextInput.addEventListener("focus", () => {
+    setTimeout(() => {
+      scrollToBottom();
+    }, 280);
   });
 
   // Form submit
