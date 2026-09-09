@@ -50,53 +50,64 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px;
-  background: rgba(3, 20, 24, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  padding-top: max(14px, calc(10px + env(safe-area-inset-top, 0px)));
+  padding-bottom: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: rgba(3, 20, 24, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   position: sticky;
   top: 0;
   z-index: 50;
+  box-sizing: border-box;
+}
+
+/* Standalone iOS App & Webview Notch / Dynamic Island Safe Area */
+.is-ios .uno-header,
+body.is-mobile-app .uno-header {
+  padding-top: max(calc(14px + env(safe-area-inset-top, 0px)), 52px) !important;
 }
 
 .uno-header__left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 .uno-back-btn {
-  color: rgba(255, 255, 255, 0.85);
+  color: #f1f5f9;
   text-decoration: none;
   font-weight: 600;
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 10px;
-  border-radius: 8px;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
   background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   transition: all 0.15s ease;
 }
 
 .uno-back-btn:hover {
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.18);
   color: #ffffff;
 }
 
 .uno-header__title {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .uno-logo-text {
   font-family: 'Fraunces', serif;
-  font-weight: 800;
-  font-size: 1.35rem;
-  letter-spacing: 0.05em;
-  background: linear-gradient(135deg, #ef4444, #f59e0b, #10b981, #3b82f6);
+  font-weight: 900;
+  font-size: 1.55rem;
+  letter-spacing: 0.06em;
+  background: linear-gradient(135deg, #ef4444 0%, #f59e0b 50%, #10b981 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -104,51 +115,63 @@
 }
 
 .uno-status-badge {
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 700;
-  padding: 3px 8px;
+  padding: 4px 12px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  color: #cbd5e1;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #34d399;
   letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
 }
 
 .uno-header__right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
-.uno-sound-btn {
+.uno-sound-btn,
+.uno-icon-btn {
   background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   color: #ffffff;
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, transform 0.15s ease;
 }
 
-.uno-sound-btn:hover {
-  background: rgba(255, 255, 255, 0.18);
+.uno-sound-btn:hover,
+.uno-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
 }
 
 .uno-leave-btn {
-  padding: 6px 12px !important;
-  font-size: 0.82rem !important;
-  background: rgba(239, 68, 68, 0.18) !important;
-  color: #fca5a5 !important;
-  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  padding: 7px 18px !important;
+  font-size: 0.86rem !important;
+  font-weight: 700 !important;
+  border-radius: 999px !important;
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.45) !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
 .uno-leave-btn:hover {
-  background: rgba(239, 68, 68, 0.3) !important;
-  color: #ffffff !important;
+  background: #b91c1c !important;
+  box-shadow: 0 6px 18px rgba(220, 38, 38, 0.6) !important;
+  transform: translateY(-1px);
 }
 
 .uno-alert-container {
@@ -215,17 +238,19 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 12px 14px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
-  transition: transform 0.15s ease;
+  gap: 12px;
 }
 
 .lobby-player-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
 }
 
 .lobby-player-avatar {
@@ -239,12 +264,26 @@
   justify-content: center;
   font-weight: 700;
   font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.lobby-player-text {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 6px;
 }
 
 .lobby-player-name {
   font-weight: 600;
   color: #ffffff;
-  font-size: 0.98rem;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 170px;
 }
 
 .lobby-player-creator {
@@ -254,14 +293,24 @@
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 6px;
-  margin-left: 6px;
+  flex-shrink: 0;
+}
+
+.lobby-player-badge-wrap {
+  flex-shrink: 0;
 }
 
 .lobby-ready-badge {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  padding: 4px 10px;
+  padding: 5px 12px;
   border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1.2;
 }
 
 .badge-ready {
@@ -346,42 +395,306 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  gap: 12px;
+  width: 100%;
+  position: relative;
 }
 
-/* Top HUD */
-.uno-top-hud {
+/* 1. Top Floating HUD (Room Meta & Direction) */
+.uno-arena-floating-hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 6px 12px;
+  z-index: 25;
+  box-sizing: border-box;
+}
+
+.uno-hud-card {
+  background: rgba(10, 22, 28, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  padding: 8px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.uno-hud-line {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
+  gap: 7px;
+  font-size: 0.82rem;
+  color: #cbd5e1;
+  font-weight: 500;
 }
 
-.uno-turn-banner {
+.uno-hud-line strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.uno-hud-icon {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.uno-direction-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  color: #f1f5f9;
+  font-weight: 600;
+  background: rgba(10, 22, 28, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 8px 16px;
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.uno-dir-arrow {
+  font-size: 1.15rem;
+  display: inline-block;
+  color: #38bdf8;
+  transition: transform 0.4s ease;
+}
+
+.uno-dir-arrow.counter {
+  transform: scaleX(-1);
+}
+
+/* 2. 3D Oval Green Felt Table */
+.uno-felt-table-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 18px 8px 26px;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.uno-table-felt {
+  position: relative;
+  width: 100%;
+  max-width: 820px;
+  height: 410px;
+  border-radius: 50% / 44%;
+  background: radial-gradient(ellipse at 50% 45%, #136a49 0%, #0a4932 55%, #052c1e 100%);
+  border: 14px solid #381f12;
+  outline: 3.5px solid #1a0f08;
+  box-shadow:
+    inset 0 14px 38px rgba(0, 0, 0, 0.7),
+    inset 0 0 60px rgba(0, 0, 0, 0.45),
+    0 24px 60px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  margin: 10px auto;
+}
+
+/* Embossed UNO Watermark on Felt */
+.uno-table-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-size: 8rem;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.038);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.45), -1px -1px 2px rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+  user-select: none;
+  z-index: 1;
+}
+
+/* 3. Perimeter Seating Slots */
+.uno-table-seats {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.table-player-seat {
+  position: absolute;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.25s ease;
+}
+
+.seat-top {
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.seat-left {
+  top: 36%;
+  left: -22px;
+  transform: translateY(-50%);
+}
+
+.seat-right {
+  top: 36%;
+  right: -22px;
+  transform: translateY(-50%);
+}
+
+.table-player-badge {
+  background: rgba(13, 27, 34, 0.94);
+  border: 1.5px solid rgba(255, 255, 255, 0.16);
+  border-radius: 18px;
+  padding: 6px 14px 6px 8px;
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 8px 16px;
-  border-radius: 999px;
-  font-size: 0.92rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.table-player-badge.is-current {
+  border-color: #34d399;
+  background: rgba(16, 42, 38, 0.96);
+  box-shadow: 0 0 20px rgba(52, 211, 153, 0.55), 0 8px 24px rgba(0, 0, 0, 0.6);
+  transform: scale(1.04);
+}
+
+.table-player-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #1e3a4b;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+
+.table-player-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: #ef4444;
+}
+
+.table-player-status-dot.is-active {
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.table-player-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.table-player-name {
+  font-size: 0.84rem;
   font-weight: 700;
   color: #ffffff;
+  max-width: 85px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table-player-cards {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* Fanned Mini Card Backs */
+.table-player-fan {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4px;
+  height: 34px;
+}
+
+.mini-card-back {
+  width: 22px;
+  height: 32px;
+  background: #0f172a;
+  border: 1.5px solid #ffffff;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -9px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+.mini-card-back:first-child {
+  margin-left: 0;
+}
+
+.mini-card-back::after {
+  content: "";
+  width: 14px;
+  height: 9px;
+  border-radius: 50%;
+  background: #dc2626;
+  transform: rotate(-25deg);
+}
+
+/* 4. Turn Banner (Center Top inside felt) */
+.uno-turn-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(16, 185, 129, 0.18);
+  border: 1.5px solid rgba(52, 211, 153, 0.5);
+  color: #34d399;
+  font-weight: 700;
+  font-size: 0.88rem;
+  padding: 6px 18px;
+  border-radius: 999px;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.25);
+  z-index: 5;
+  margin-bottom: 8px;
   transition: all 0.25s ease;
 }
 
 .uno-turn-banner.is-my-turn {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.35), rgba(6, 95, 70, 0.5));
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.35), rgba(6, 95, 70, 0.6));
   border-color: #34d399;
   color: #a7f3d0;
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 24px rgba(16, 185, 129, 0.4);
 }
 
 .uno-turn-pulse {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: #34d399;
   box-shadow: 0 0 10px #34d399;
@@ -393,144 +706,33 @@
   50% { transform: scale(1.3); opacity: 1; }
 }
 
-.uno-direction-indicator {
+/* 5. Center Table Piles */
+.uno-table-center-piles {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.78rem;
-  color: #94a3b8;
-  font-weight: 600;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 6px 12px;
-  border-radius: 999px;
-}
-
-.uno-dir-arrow {
-  font-size: 1.1rem;
-  display: inline-block;
-  transition: transform 0.4s ease;
-}
-
-.uno-dir-arrow.counter {
-  transform: scaleX(-1);
-}
-
-/* Opponents Area */
-.uno-opponents-area {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding: 6px 2px 10px;
-  scrollbar-width: thin;
   justify-content: center;
+  gap: 36px;
+  z-index: 5;
+  margin: 6px 0 10px;
 }
 
-.opponent-card {
+.uno-pile-group {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-  padding: 10px 12px;
-  min-width: 82px;
-  position: relative;
-  transition: all 0.2s ease;
 }
 
-.opponent-card.is-current {
-  border-color: #38bdf8;
-  background: rgba(14, 165, 233, 0.15);
-  box-shadow: 0 0 16px rgba(56, 189, 248, 0.3);
-  transform: translateY(-2px);
-}
-
-.opponent-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #1e293b;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.uno-pile-pill {
+  margin-top: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #f1f5f9;
+  font-size: 0.74rem;
   font-weight: 700;
-  font-size: 0.85rem;
-  color: #ffffff;
-  margin-bottom: 4px;
-}
-
-.opponent-name {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #e2e8f0;
-  max-width: 80px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.opponent-card-count {
-  margin-top: 4px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  background: #334155;
-  color: #f8fafc;
-  padding: 2px 7px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-}
-
-.opponent-card-count.uno-warning {
-  background: #dc2626;
-  color: #ffffff;
-  animation: uno-pulse 1s ease infinite;
-}
-
-@keyframes uno-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.08); }
-}
-
-/* Center Table Felt */
-.uno-table-felt {
-  position: relative;
-  background: radial-gradient(circle at 50% 50%, #0d4653 0%, #082931 60%, #03151a 100%);
-  border: 2px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  padding: 24px 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 180px;
-  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.6);
-  margin: 4px 0;
-}
-
-.uno-color-ring {
-  position: absolute;
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  pointer-events: none;
-  filter: blur(28px);
-  opacity: 0.55;
-  transition: background 0.4s ease;
-}
-
-.color-ring-RED { background: var(--uno-red); }
-.color-ring-BLUE { background: var(--uno-blue); }
-.color-ring-GREEN { background: var(--uno-green); }
-.color-ring-YELLOW { background: var(--uno-yellow); }
-
-.uno-piles-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 32px;
-  z-index: 2;
 }
 
 /* Draw Pile */
@@ -545,97 +747,101 @@
   transform: translateY(-4px) scale(1.03);
 }
 
-.uno-pile-count {
+.uno-draw-pile::before,
+.uno-draw-pile::after {
+  content: "";
   position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(15, 23, 42, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 999px;
-  white-space: nowrap;
+  inset: 0;
+  border-radius: 12px;
+  background: #0f172a;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+
+.uno-draw-pile::before {
+  transform: translate(-3px, 3px);
+  z-index: 0;
+}
+
+.uno-draw-pile::after {
+  transform: translate(-6px, 6px);
+  z-index: -1;
 }
 
 /* Discard Pile */
 .uno-discard-pile {
   position: relative;
+  transition: transform 0.15s ease;
 }
 
-.uno-action-pill {
-  margin-top: 18px;
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #f1f5f9;
-  font-size: 0.82rem;
-  font-weight: 600;
-  padding: 5px 14px;
-  border-radius: 999px;
-  z-index: 2;
-  text-align: center;
-  max-width: 90%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-/* Gameplay Controls HUD */
-.uno-controls-hud {
+/* 6. Center Action Buttons */
+.uno-table-actions {
   display: flex;
-  gap: 8px;
+  align-items: center;
   justify-content: center;
-  margin: 6px 0;
-  flex-wrap: wrap;
+  gap: 12px;
+  z-index: 5;
+  margin-top: 2px;
 }
 
-.uno-hud-btn {
+.uno-action-btn {
   border: none;
   font-weight: 700;
-  font-size: 0.88rem;
-  padding: 10px 18px;
-  border-radius: 12px;
+  font-size: 0.95rem;
+  padding: 10px 22px;
+  border-radius: 999px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   transition: all 0.15s ease;
-  min-height: 44px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.btn-draw {
-  background: #0284c7;
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
-}
-.btn-draw:hover { background: #0369a1; transform: translateY(-1px); }
-
-.btn-pass {
-  background: #64748b;
+.uno-btn-draw {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
   color: #ffffff;
 }
-.btn-pass:hover { background: #475569; }
 
-.btn-uno {
+.uno-btn-draw:hover {
+  background: linear-gradient(135deg, #0369a1, #075985);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.45);
+}
+
+.uno-btn-draw:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.uno-btn-uno {
   background: linear-gradient(135deg, #ef4444, #dc2626);
   color: #ffffff;
-  font-size: 1rem;
-  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-}
-.btn-uno.is-active {
-  animation: uno-btn-glow 1s ease infinite alternate;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.65);
 }
 
-@keyframes uno-btn-glow {
-  0% { box-shadow: 0 0 10px #ef4444; transform: scale(1); }
-  100% { box-shadow: 0 0 24px #ef4444; transform: scale(1.06); }
+.uno-btn-uno:hover,
+.uno-btn-uno.is-active {
+  box-shadow: 0 0 28px rgba(239, 68, 68, 0.95);
+  transform: scale(1.05);
 }
 
-.btn-catch {
+.uno-btn-pass {
+  background: #475569;
+  color: #ffffff;
+}
+
+.uno-btn-pass:hover {
+  background: #334155;
+  transform: translateY(-2px);
+}
+
+.uno-btn-catch {
   background: linear-gradient(135deg, #f59e0b, #d97706);
   color: #000000;
   font-weight: 800;
-  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.5);
   animation: catch-alert 0.8s ease infinite alternate;
 }
 
@@ -644,53 +850,63 @@
   100% { transform: scale(1.06); }
 }
 
-/* Player Hand Container */
-.uno-hand-container {
-  background: rgba(3, 20, 24, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  padding: 12px 14px 16px;
+/* 7. Bottom Hand Dock ("Your Cards") */
+.uno-hand-dock {
+  background: rgba(7, 18, 24, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 22px;
+  padding: 14px 20px 16px;
+  max-width: 860px;
+  width: 100%;
+  margin: 10px auto 4px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
 
-.uno-hand-title {
+.uno-hand-dock__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 0.84rem;
-  font-weight: 700;
-  color: #cbd5e1;
+  margin-bottom: 10px;
 }
 
-.uno-hand-hint {
-  font-size: 0.78rem;
-  font-weight: 500;
+.uno-hand-dock__title {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.uno-hand-dock__hint {
+  font-size: 0.85rem;
+  font-weight: 600;
   color: #38bdf8;
 }
 
-.uno-hand-cards {
+.uno-hand-dock__cards {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   overflow-x: auto;
-  padding: 10px 4px 12px;
+  padding: 10px 6px 12px;
   scrollbar-width: thin;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
 }
 
 /* ================================================= */
-/* 3. CARD DESIGN (UNO Card) */
+/* 8. AUTHENTIC CARD DESIGN */
 /* ================================================= */
 
 .uno-card {
-  width: var(--uno-card-w);
-  height: var(--uno-card-h);
-  border-radius: var(--uno-radius);
+  width: 78px;
+  height: 116px;
+  border-radius: 12px;
   background: #ffffff;
   position: relative;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
   flex-shrink: 0;
   cursor: pointer;
   box-sizing: border-box;
@@ -698,7 +914,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 3px solid #ffffff;
+  border: 3.5px solid #ffffff;
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, opacity 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }
@@ -707,7 +923,7 @@
 .uno-card__inner {
   width: 100%;
   height: 100%;
-  border-radius: calc(var(--uno-radius) - 3px);
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -717,8 +933,8 @@
 }
 
 .uno-card__oval {
-  width: 86%;
-  height: 62%;
+  width: 82%;
+  height: 64%;
   border-radius: 50%;
   transform: rotate(-25deg);
   background: #ffffff;
@@ -731,16 +947,15 @@
 .uno-card__value {
   font-family: 'Fraunces', serif;
   font-weight: 800;
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   line-height: 1;
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.15);
 }
 
 .uno-card__corner {
   position: absolute;
   font-family: 'Fraunces', serif;
   font-weight: 700;
-  font-size: 0.72rem;
+  font-size: 0.76rem;
   color: #ffffff;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
 }
@@ -748,17 +963,17 @@
 .uno-card__corner--br { bottom: 3px; right: 4px; transform: rotate(180deg); }
 
 /* Color Themes */
-.card-RED .uno-card__inner { background: var(--uno-red); }
-.card-RED .uno-card__value { color: var(--uno-red); }
+.card-RED .uno-card__inner { background: #e11d48; }
+.card-RED .uno-card__value { color: #e11d48; }
 
-.card-BLUE .uno-card__inner { background: var(--uno-blue); }
-.card-BLUE .uno-card__value { color: var(--uno-blue); }
+.card-BLUE .uno-card__inner { background: #0284c7; }
+.card-BLUE .uno-card__value { color: #0284c7; }
 
-.card-GREEN .uno-card__inner { background: var(--uno-green); }
-.card-GREEN .uno-card__value { color: var(--uno-green); }
+.card-GREEN .uno-card__inner { background: #16a34a; }
+.card-GREEN .uno-card__value { color: #16a34a; }
 
-.card-YELLOW .uno-card__inner { background: var(--uno-yellow); }
-.card-YELLOW .uno-card__value { color: var(--uno-yellow-dark); }
+.card-YELLOW .uno-card__inner { background: #eab308; }
+.card-YELLOW .uno-card__value { color: #ca8a04; }
 
 /* Wild Theme */
 .card-WILD .uno-card__inner {
@@ -766,132 +981,615 @@
 }
 .card-WILD .uno-card__oval {
   background: conic-gradient(
-    var(--uno-red) 0deg 90deg,
-    var(--uno-blue) 90deg 180deg,
-    var(--uno-yellow) 180deg 270deg,
-    var(--uno-green) 270deg 360deg
+    #e11d48 0deg 90deg,
+    #0284c7 90deg 180deg,
+    #eab308 180deg 270deg,
+    #16a34a 270deg 360deg
   );
 }
 .card-WILD .uno-card__value {
   color: #ffffff;
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-weight: 800;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
 }
 
 /* Card Back */
 .uno-card--back {
-  background: #000000;
+  background: #0f172a;
   border-color: #ffffff;
 }
 .uno-card--back .uno-card__back-oval {
   width: 82%;
-  height: 55%;
+  height: 56%;
   border-radius: 50%;
   transform: rotate(-25deg);
-  background: var(--uno-red);
-  color: #ffde59;
+  background: #dc2626;
+  color: #facc15;
   font-family: 'Fraunces', serif;
-  font-weight: 800;
-  font-size: 1.1rem;
+  font-weight: 900;
+  font-size: 1.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
   letter-spacing: 0.05em;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  text-shadow: 1.5px 1.5px 0 #000;
 }
 
-/* Playable state */
-.uno-card.is-playable {
-  box-shadow: 0 0 16px rgba(56, 189, 248, 0.7), 0 4px 12px rgba(0, 0, 0, 0.4);
-  border-color: #38bdf8;
-  animation: card-hover-bounce 1.5s ease infinite alternate;
-}
-
-@keyframes card-hover-bounce {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-4px); }
-}
-
+/* Interactive card states */
 .uno-card.is-playable:hover {
-  transform: translateY(-16px) scale(1.08) !important;
-  box-shadow: 0 0 24px rgba(56, 189, 248, 0.9), 0 10px 20px rgba(0, 0, 0, 0.5);
-  z-index: 10;
+  transform: translateY(-16px) scale(1.06) !important;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.55), 0 0 16px rgba(56, 189, 248, 0.6);
+  z-index: 15;
 }
 
 .uno-card.not-playable {
-  opacity: 0.5;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
-/* Color Picker Modal */
-.uno-color-modal {
-  background: #0f172a !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+/* Icon Buttons in Header (Settings, Rotate, etc.) */
+.uno-icon-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   color: #ffffff;
-  padding: 24px !important;
-}
-
-.uno-color-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.uno-color-quad {
-  border: none;
-  font-family: 'Fraunces', serif;
-  font-weight: 800;
-  font-size: 1.15rem;
-  color: #ffffff;
-  padding: 24px 16px;
-  border-radius: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
   cursor: pointer;
-  transition: transform 0.15s ease, filter 0.15s ease;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-  min-height: 70px;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.uno-color-quad:hover,
-.uno-color-quad:active {
-  transform: scale(1.04);
-  filter: brightness(1.1);
+.uno-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
 }
 
-.quad-red { background: var(--uno-red); }
-.quad-blue { background: var(--uno-blue); }
-.quad-green { background: var(--uno-green); }
-.quad-yellow { background: var(--uno-yellow); }
-
-/* Game Over Modal */
-.uno-gameover-modal {
-  text-align: center;
-  background: #0f172a !important;
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  padding: 32px 24px !important;
+.uno-icon-btn:active {
+  transform: scale(0.95);
 }
 
-.uno-gameover-trophy {
+/* Screen Rotation Button */
+.uno-rotate-btn {
+  position: relative;
+}
+
+.uno-rotate-icon {
+  display: block;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.uno-rotate-btn.is-rotated {
+  background: rgba(56, 189, 248, 0.22);
+  border-color: rgba(56, 189, 248, 0.55);
+  color: #38bdf8;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.4);
+}
+
+.uno-rotate-btn.is-rotated .uno-rotate-icon {
+  transform: rotate(90deg);
+}
+
+/* Forced Landscape CSS Mode (Simulated orientation for mobile when native orientation lock is unavailable) */
+.uno-arena-shell.is-force-landscape {
+  position: fixed !important;
+  top: 0 !important;
+  left: 100vw !important;
+  width: 100vh !important;
+  height: 100vw !important;
+  transform: rotate(90deg) !important;
+  transform-origin: top left !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  z-index: 9999 !important;
+  background: radial-gradient(circle at 50% 20%, #0d3b45 0%, #061c22 70%, #030d10 100%) !important;
+}
+
+/* Responsive adjustments for Tablets & Mobile */
+@media (max-width: 768px) {
+  .uno-table-felt {
+    height: 360px;
+    border-width: 10px;
+    max-width: 95%;
+  }
+
+  .uno-table-watermark {
+    font-size: 5rem;
+  }
+
+  .seat-left {
+    left: -12px;
+  }
+
+  .seat-right {
+    right: -12px;
+  }
+
+  .table-player-badge {
+    padding: 4px 8px;
+    gap: 6px;
+  }
+
+  .table-player-name {
+    max-width: 60px;
+    font-size: 0.76rem;
+  }
+
+  .uno-card {
+    width: 64px;
+    height: 96px;
+  }
+
+  .uno-card__value {
+    font-size: 1.4rem;
+  }
+
+  .uno-action-btn {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Compact Mobile Header (<480px) */
+@media (max-width: 480px) {
+  .uno-header {
+    padding-top: max(calc(12px + env(safe-area-inset-top, 0px)), 52px);
+    padding-bottom: 10px;
+    padding-left: max(12px, env(safe-area-inset-left, 0px));
+    padding-right: max(12px, env(safe-area-inset-right, 0px));
+    gap: 8px;
+  }
+
+  .uno-header__left {
+    gap: 8px;
+  }
+
+  .uno-back-btn {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    min-width: 34px;
+    justify-content: center;
+  }
+
+  .uno-back-text {
+    display: none;
+  }
+
+  .uno-logo-text {
+    font-size: 1.35rem;
+  }
+
+  .uno-status-badge {
+    display: none; /* Hide header status pill on mobile to prevent overcrowding */
+  }
+
+  .uno-header__right {
+    gap: 6px;
+  }
+
+  .uno-sound-btn,
+  .uno-icon-btn,
+  .uno-rotate-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .uno-leave-btn {
+    padding: 6px 14px !important;
+    font-size: 0.8rem !important;
+    flex-shrink: 0;
+  }
+
+  .uno-main {
+    padding: 12px 12px calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .uno-lobby-card {
+    padding: 20px 14px !important;
+    border-radius: 18px !important;
+  }
+
+  .uno-lobby-header h2 {
+    font-size: 1.4rem;
+  }
+
+  .uno-lobby-header p {
+    font-size: 0.85rem;
+  }
+
+  .lobby-player-name {
+    max-width: 120px;
+  }
+
+  .uno-lobby-actions {
+    gap: 8px;
+  }
+
+  .uno-lobby-actions .btn {
+    padding: 12px 10px;
+    font-size: 0.92rem;
+  }
+
+  .uno-lobby-share-row input {
+    font-size: 0.82rem;
+    padding: 8px 10px;
+  }
+
+  .uno-lobby-share-row .btn {
+    padding: 8px 14px !important;
+  }
+}
+
+/* ================================================= */
+/* LANDSCAPE REFLOW STYLES (Forced Landscape Mode) */
+/* ================================================= */
+
+.uno-arena-shell.is-force-landscape .uno-header {
+  padding: 6px 14px;
+  min-height: 42px;
+}
+
+.uno-arena-shell.is-force-landscape .uno-logo-text {
+  font-size: 1.22rem;
+}
+
+.uno-arena-shell.is-force-landscape .uno-back-btn {
+  padding: 4px 10px;
+  font-size: 0.8rem;
+}
+
+.uno-arena-shell.is-force-landscape .uno-leave-btn {
+  padding: 5px 14px !important;
+  font-size: 0.8rem !important;
+}
+
+.uno-arena-shell.is-force-landscape .uno-sound-btn,
+.uno-arena-shell.is-force-landscape .uno-icon-btn,
+.uno-arena-shell.is-force-landscape .uno-rotate-btn {
+  width: 32px;
+  height: 32px;
+}
+
+.uno-arena-shell.is-force-landscape .uno-arena-floating-hud {
+  padding: 2px 14px 4px;
+}
+
+.uno-arena-shell.is-force-landscape .uno-hud-card,
+.uno-arena-shell.is-force-landscape .uno-direction-indicator {
+  padding: 4px 10px;
+  font-size: 0.75rem;
+}
+
+.uno-arena-shell.is-force-landscape .uno-felt-table-wrapper {
+  padding: 4px 8px 6px;
+}
+
+.uno-arena-shell.is-force-landscape .uno-table-felt {
+  height: 200px;
+  max-width: 640px;
+  border-width: 8px;
+  outline-width: 2px;
+  margin: 2px auto;
+}
+
+.uno-arena-shell.is-force-landscape .uno-table-watermark {
   font-size: 3.8rem;
-  margin-bottom: 12px;
-  animation: bounce-trophy 1s ease infinite alternate;
 }
 
-@keyframes bounce-trophy {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-8px); }
+.uno-arena-shell.is-force-landscape .uno-turn-banner {
+  font-size: 0.74rem;
+  padding: 2px 10px;
+  margin-bottom: 2px;
 }
 
-.uno-gameover-modal h2 {
-  font-size: 1.7rem;
-  margin: 0 0 6px;
+.uno-arena-shell.is-force-landscape .uno-table-center-piles {
+  gap: 16px;
+  margin: 2px 0;
 }
 
-.uno-gameover-sub {
-  color: #94a3b8;
-  font-size: 0.95rem;
-  margin-bottom: 24px;
+.uno-arena-shell.is-force-landscape .uno-table-felt .uno-card {
+  width: 52px;
+  height: 76px;
+  border-width: 2px;
+}
+
+.uno-arena-shell.is-force-landscape .uno-table-felt .uno-card__value {
+  font-size: 1.15rem;
+}
+
+.uno-arena-shell.is-force-landscape .uno-pile-pill {
+  margin-top: 2px;
+  font-size: 0.65rem;
+  padding: 2px 8px;
+}
+
+.uno-arena-shell.is-force-landscape .uno-table-actions {
+  margin-top: 0;
+  gap: 8px;
+}
+
+.uno-arena-shell.is-force-landscape .uno-action-btn {
+  padding: 5px 12px;
+  font-size: 0.78rem;
+}
+
+.uno-arena-shell.is-force-landscape .seat-top {
+  top: -14px;
+}
+
+.uno-arena-shell.is-force-landscape .seat-left {
+  top: 42%;
+  left: -8px;
+}
+
+.uno-arena-shell.is-force-landscape .seat-right {
+  top: 42%;
+  right: -8px;
+}
+
+.uno-arena-shell.is-force-landscape .table-player-badge {
+  padding: 2px 6px 2px 4px;
+  gap: 4px;
+}
+
+.uno-arena-shell.is-force-landscape .table-player-avatar {
+  width: 22px;
+  height: 22px;
+  font-size: 0.68rem;
+}
+
+.uno-arena-shell.is-force-landscape .table-player-name {
+  font-size: 0.72rem;
+  max-width: 60px;
+}
+
+.uno-arena-shell.is-force-landscape .table-player-cards {
+  font-size: 0.66rem;
+}
+
+.uno-arena-shell.is-force-landscape .table-player-fan {
+  height: 20px;
+  margin-top: 1px;
+}
+
+.uno-arena-shell.is-force-landscape .mini-card-back {
+  width: 15px;
+  height: 20px;
+  margin-left: -6px;
+}
+
+.uno-arena-shell.is-force-landscape .mini-card-back::after {
+  width: 9px;
+  height: 5px;
+}
+
+.uno-arena-shell.is-force-landscape .uno-hand-dock {
+  padding: 4px 12px 6px;
+  margin: 2px auto;
+  border-radius: 14px;
+  max-width: 680px;
+}
+
+.uno-arena-shell.is-force-landscape .uno-hand-dock__header {
+  margin-bottom: 2px;
+}
+
+.uno-arena-shell.is-force-landscape .uno-hand-dock__title {
+  font-size: 0.82rem;
+}
+
+.uno-arena-shell.is-force-landscape .uno-hand-dock__hint {
+  font-size: 0.72rem;
+}
+
+.uno-arena-shell.is-force-landscape .uno-hand-dock__cards {
+  padding: 2px 2px 4px;
+  gap: 6px;
+}
+
+.uno-arena-shell.is-force-landscape .uno-hand-dock__cards .uno-card {
+  width: 52px;
+  height: 76px;
+  border-width: 2px;
+}
+
+.uno-arena-shell.is-force-landscape .uno-hand-dock__cards .uno-card__value {
+  font-size: 1.15rem;
+}
+
+.uno-arena-shell.is-force-landscape .uno-hand-dock__cards .uno-card__corner {
+  font-size: 0.6rem;
+}
+
+/* ================================================= */
+/* LANDSCAPE REFLOW STYLES (Native Landscape Screen) */
+/* ================================================= */
+
+@media (orientation: landscape) and (max-height: 580px) {
+  .uno-header {
+    padding: 6px 14px;
+    min-height: 42px;
+  }
+
+  .uno-logo-text {
+    font-size: 1.22rem;
+  }
+
+  .uno-back-btn {
+    padding: 4px 10px;
+    font-size: 0.8rem;
+  }
+
+  .uno-leave-btn {
+    padding: 5px 14px !important;
+    font-size: 0.8rem !important;
+  }
+
+  .uno-sound-btn,
+  .uno-icon-btn,
+  .uno-rotate-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .uno-arena-floating-hud {
+    padding: 2px 14px 4px;
+  }
+
+  .uno-hud-card,
+  .uno-direction-indicator {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+  }
+
+  .uno-felt-table-wrapper {
+    padding: 4px 8px 6px;
+  }
+
+  .uno-table-felt {
+    height: 200px;
+    max-width: 640px;
+    border-width: 8px;
+    outline-width: 2px;
+    margin: 2px auto;
+  }
+
+  .uno-table-watermark {
+    font-size: 3.8rem;
+  }
+
+  .uno-turn-banner {
+    font-size: 0.74rem;
+    padding: 2px 10px;
+    margin-bottom: 2px;
+  }
+
+  .uno-table-center-piles {
+    gap: 16px;
+    margin: 2px 0;
+  }
+
+  .uno-table-felt .uno-card {
+    width: 52px;
+    height: 76px;
+    border-width: 2px;
+  }
+
+  .uno-table-felt .uno-card__value {
+    font-size: 1.15rem;
+  }
+
+  .uno-pile-pill {
+    margin-top: 2px;
+    font-size: 0.65rem;
+    padding: 2px 8px;
+  }
+
+  .uno-table-actions {
+    margin-top: 0;
+    gap: 8px;
+  }
+
+  .uno-action-btn {
+    padding: 5px 12px;
+    font-size: 0.78rem;
+  }
+
+  .seat-top {
+    top: -14px;
+  }
+
+  .seat-left {
+    top: 42%;
+    left: -8px;
+  }
+
+  .seat-right {
+    top: 42%;
+    right: -8px;
+  }
+
+  .table-player-badge {
+    padding: 2px 6px 2px 4px;
+    gap: 4px;
+  }
+
+  .table-player-avatar {
+    width: 22px;
+    height: 22px;
+    font-size: 0.68rem;
+  }
+
+  .table-player-name {
+    font-size: 0.72rem;
+    max-width: 60px;
+  }
+
+  .table-player-cards {
+    font-size: 0.66rem;
+  }
+
+  .table-player-fan {
+    height: 20px;
+    margin-top: 1px;
+  }
+
+  .mini-card-back {
+    width: 15px;
+    height: 20px;
+    margin-left: -6px;
+  }
+
+  .mini-card-back::after {
+    width: 9px;
+    height: 5px;
+  }
+
+  .uno-hand-dock {
+    padding: 4px 12px 6px;
+    margin: 2px auto;
+    border-radius: 14px;
+    max-width: 680px;
+  }
+
+  .uno-hand-dock__header {
+    margin-bottom: 2px;
+  }
+
+  .uno-hand-dock__title {
+    font-size: 0.82rem;
+  }
+
+  .uno-hand-dock__hint {
+    font-size: 0.72rem;
+  }
+
+  .uno-hand-dock__cards {
+    padding: 2px 2px 4px;
+    gap: 6px;
+  }
+
+  .uno-hand-dock__cards .uno-card {
+    width: 52px;
+    height: 76px;
+    border-width: 2px;
+  }
+
+  .uno-hand-dock__cards .uno-card__value {
+    font-size: 1.15rem;
+  }
+
+  .uno-hand-dock__cards .uno-card__corner {
+    font-size: 0.6rem;
+  }
 }
 
 /* ================================================= */
