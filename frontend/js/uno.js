@@ -15,6 +15,16 @@
     return;
   }
 
+  // Detect iOS or Capacitor mobile app environment
+  if (
+    window.location.protocol === "capacitor:" ||
+    window.Capacitor !== undefined ||
+    /iPhone|iPad|iPod/.test(navigator.userAgent)
+  ) {
+    document.documentElement.classList.add("is-ios");
+    document.body.classList.add("is-mobile-app");
+  }
+
   // DOM Elements
   const lobbyView = document.getElementById("lobbyView");
   const gameplayView = document.getElementById("gameplayView");
@@ -45,12 +55,19 @@
   const handCountBadge = document.getElementById("handCountBadge");
   const handHint = document.getElementById("handHint");
   const playerHandCards = document.getElementById("playerHandCards");
+  const roomShortCode = document.getElementById("roomShortCode");
+  const turnCounterVal = document.getElementById("turnCounterVal");
+  const btnGameSettings = document.getElementById("btnGameSettings");
+  const btnRotateScreen = document.getElementById("btnRotateScreen");
+  const arenaShell = document.querySelector(".uno-arena-shell");
 
   // Modals
   const colorPickerModal = document.getElementById("colorPickerModal");
   const gameOverModal = document.getElementById("gameOverModal");
   const gameOverTitle = document.getElementById("gameOverTitle");
   const gameOverSub = document.getElementById("gameOverSub");
+  const gameSettingsModal = document.getElementById("gameSettingsModal");
+  const btnSettingsClose = document.getElementById("btnSettingsClose");
 
   // State
   let currentGame = null;
@@ -152,6 +169,100 @@
     if (!isMuted) playTone(500, "sine", 0.1);
   });
 
+  // =======================================================
+  // MOBILE SCREEN ROTATION CONTROLLER
+  // =======================================================
+
+  function isDevicePortrait() {
+    if (window.screen && window.screen.orientation && window.screen.orientation.type) {
+      return window.screen.orientation.type.startsWith("portrait");
+    }
+    return window.innerHeight > window.innerWidth;
+  }
+
+  function updateRotateButtonUI() {
+    if (!btnRotateScreen) return;
+    const isRotated = arenaShell ? arenaShell.classList.contains("is-force-landscape") : false;
+    const isNativeLandscape = !isDevicePortrait();
+
+    if (isRotated || isNativeLandscape) {
+      btnRotateScreen.classList.add("is-rotated");
+      btnRotateScreen.title = "Rotate Screen (Switch to Portrait)";
+    } else {
+      btnRotateScreen.classList.remove("is-rotated");
+      btnRotateScreen.title = "Rotate Screen (Switch to Landscape)";
+    }
+  }
+
+  async function handleRotateScreen() {
+    if (!arenaShell) return;
+
+    const inPortrait = isDevicePortrait();
+    const isCurrentlyForced = arenaShell.classList.contains("is-force-landscape");
+
+    // 1. Try Native Screen Orientation API if supported (e.g. Android Chrome, PWAs, Capacitor Android)
+    let nativeLocked = false;
+    if (window.screen && window.screen.orientation && typeof window.screen.orientation.lock === "function") {
+      try {
+        if (inPortrait && !isCurrentlyForced) {
+          await window.screen.orientation.lock("landscape");
+          nativeLocked = true;
+        } else {
+          await window.screen.orientation.lock("portrait");
+          nativeLocked = true;
+        }
+      } catch (_) {
+        nativeLocked = false;
+      }
+    }
+
+    // 2. Fallback / Complementary CSS Simulated Rotation
+    // If native lock was not permitted or didn't rotate viewport (e.g. iOS Safari or un-fullscreened mobile browser)
+    if (!nativeLocked) {
+      arenaShell.classList.toggle("is-force-landscape");
+      arenaShell.scrollTop = 0;
+    }
+
+    updateRotateButtonUI();
+    // Dispatch resize event so all dimensions reflow cleanly
+    window.dispatchEvent(new Event("resize"));
+  }
+
+  if (btnRotateScreen) {
+    btnRotateScreen.addEventListener("click", handleRotateScreen);
+    updateRotateButtonUI();
+  }
+
+  window.addEventListener("resize", () => {
+    // If device is physically turned to landscape, clear forced CSS rotation to avoid double-rotating
+    if (!isDevicePortrait() && arenaShell && arenaShell.classList.contains("is-force-landscape")) {
+      arenaShell.classList.remove("is-force-landscape");
+    }
+    updateRotateButtonUI();
+  });
+
+  if (window.screen && window.screen.orientation) {
+    window.screen.orientation.addEventListener("change", () => {
+      if (!isDevicePortrait() && arenaShell && arenaShell.classList.contains("is-force-landscape")) {
+        arenaShell.classList.remove("is-force-landscape");
+      }
+      updateRotateButtonUI();
+    });
+  }
+
+  function cleanupOrientation() {
+    try {
+      if (window.screen && window.screen.orientation && typeof window.screen.orientation.unlock === "function") {
+        window.screen.orientation.unlock();
+      }
+    } catch (_) {}
+    if (arenaShell) {
+      arenaShell.classList.remove("is-force-landscape");
+    }
+  }
+
+  window.addEventListener("beforeunload", cleanupOrientation);
+
   function showAlert(msg, type = "error") {
     if (!pageAlert) return;
     pageAlert.innerHTML = `
@@ -201,7 +312,13 @@
 
   function renderGame(game) {
     currentGame = game;
-    arenaStatusBadge.textContent = game.status;
+    if (arenaStatusBadge) {
+      if (game.status === "PLAYING") {
+        arenaStatusBadge.innerHTML = `<span style="color:#34d399; margin-right:4px;">●</span> PLAYING`;
+      } else {
+        arenaStatusBadge.textContent = game.status;
+      }
+    }
 
     if (game.status === "WAITING") {
       renderLobby(game);
@@ -222,6 +339,7 @@
   function renderLobby(game) {
     lobbyView.style.display = "flex";
     gameplayView.style.display = "none";
+    if (btnRotateScreen) btnRotateScreen.style.display = "none";
 
     const allPlayers = [game.myPlayer, ...game.opponents].filter(Boolean);
     const playerCount = allPlayers.length;
@@ -243,12 +361,12 @@
           <div class="lobby-player-row">
             <div class="lobby-player-info">
               <div class="lobby-player-avatar">${initialsStr}</div>
-              <div>
+              <div class="lobby-player-text">
                 <span class="lobby-player-name">${escapeHtml(p.name)} ${isSelf ? "(You)" : ""}</span>
                 ${isCreator ? `<span class="lobby-player-creator">Host</span>` : ""}
               </div>
             </div>
-            <div>${readyBadge}</div>
+            <div class="lobby-player-badge-wrap">${readyBadge}</div>
           </div>
         `;
       })
@@ -267,10 +385,20 @@
       btnToggleReady.style.display = "none";
     }
 
-    // Share link input population
+    // Share link / room code input population
     const shareInput = document.getElementById("lobbyShareInput");
+    const shareLabel = document.getElementById("lobbyShareLabel");
+    const isMobileApp = window.location.protocol === "capacitor:" || window.location.protocol === "file:" || window.Capacitor;
+    const shortRoomCode = `#UNO${game.id ? game.id.slice(0, 4).toUpperCase() : ""}`;
+
     if (shareInput) {
-      shareInput.value = window.location.href;
+      if (isMobileApp) {
+        shareInput.value = shortRoomCode;
+        if (shareLabel) shareLabel.textContent = "Room code for group roommates:";
+        if (btnCopyShareLink) btnCopyShareLink.textContent = "Share Code";
+      } else {
+        shareInput.value = window.location.href;
+      }
     }
 
     // Start game button visibility (Creator only)
@@ -291,6 +419,15 @@
   function renderGameplay(game) {
     lobbyView.style.display = "none";
     gameplayView.style.display = "flex";
+    if (btnRotateScreen) btnRotateScreen.style.display = "inline-flex";
+
+    // Update Room Meta Badge in Floating HUD
+    if (roomShortCode) {
+      roomShortCode.textContent = `#UNO${game.id ? game.id.slice(0, 4).toUpperCase() : ""}`;
+    }
+    if (turnCounterVal) {
+      turnCounterVal.textContent = String(game.turnNumber || 1);
+    }
 
     // Play chime if it just became your turn
     if (game.isMyTurn && previousTurnPlayerId !== currentUser.id) {
@@ -319,17 +456,21 @@
     }
 
     // Active Color Ring
-    const activeColor = game.currentColor || (game.topDiscardCard ? game.topDiscardCard.color : "RED");
-    activeColorRing.className = `uno-color-ring color-ring-${activeColor}`;
+    if (activeColorRing) {
+      const activeColor = game.currentColor || (game.topDiscardCard ? game.topDiscardCard.color : "RED");
+      activeColorRing.className = `uno-color-ring color-ring-${activeColor}`;
+    }
 
     // Last Action Banner
-    if (game.lastAction && game.lastAction.text) {
-      actionPill.textContent = game.lastAction.text;
-      if (game.lastAction.type === "CAUGHT_UNO") {
-        soundUnoFanfare();
+    if (actionPill) {
+      if (game.lastAction && game.lastAction.text) {
+        actionPill.textContent = game.lastAction.text;
+        if (game.lastAction.type === "CAUGHT_UNO") {
+          soundUnoFanfare();
+        }
+      } else {
+        actionPill.textContent = "Match in progress";
       }
-    } else {
-      actionPill.textContent = "Match in progress";
     }
 
     // Discard Pile Top Card
@@ -340,21 +481,46 @@
     }
 
     // Draw Pile count
-    drawPileCountBadge.textContent = `${game.drawPileCount} Cards`;
+    if (drawPileCountBadge) {
+      drawPileCountBadge.textContent = `${game.drawPileCount} Cards`;
+    }
 
-    // Opponents Area
-    opponentsArea.innerHTML = game.opponents
-      .map((opp) => {
+    // Opponents Area - Perimeter seating around 3D green felt table
+    const oppList = game.opponents || [];
+    const oppCount = oppList.length;
+    let seatClasses = [];
+    if (oppCount === 1) {
+      seatClasses = ["seat-top"];
+    } else if (oppCount === 2) {
+      seatClasses = ["seat-left", "seat-right"];
+    } else {
+      seatClasses = ["seat-left", "seat-top", "seat-right"];
+    }
+
+    opponentsArea.innerHTML = oppList
+      .map((opp, idx) => {
         const isCurrent = opp.userId === game.currentPlayerId;
-        const hasOneCard = opp.cardCount === 1;
-        const unoWarningClass = hasOneCard ? "uno-warning" : "";
+        const seatClass = seatClasses[idx % seatClasses.length] || "seat-top";
+        const initialsStr = opp.name ? escapeHtml(opp.name.slice(0, 2).toUpperCase()) : "?";
+        const cardCount = opp.cardCount || 0;
+        const miniCardsCount = Math.min(cardCount, 5);
+        let fanHtml = "";
+        for (let i = 0; i < miniCardsCount; i++) {
+          fanHtml += `<div class="mini-card-back"></div>`;
+        }
 
         return `
-          <div class="opponent-card ${isCurrent ? "is-current" : ""}">
-            <div class="opponent-avatar">${escapeHtml(opp.name.slice(0, 2).toUpperCase())}</div>
-            <div class="opponent-name" title="${escapeHtml(opp.name)}">${escapeHtml(opp.name)}</div>
-            <div class="opponent-card-count ${unoWarningClass}">
-              &#127183; ${opp.cardCount}
+          <div class="table-player-seat ${seatClass}">
+            <div class="table-player-badge ${isCurrent ? "is-current" : ""}">
+              <div class="table-player-avatar">${initialsStr}</div>
+              <div class="table-player-status-dot ${isCurrent ? "is-active" : ""}"></div>
+              <div class="table-player-info">
+                <div class="table-player-name" title="${escapeHtml(opp.name)}">${escapeHtml(opp.name)}</div>
+                <div class="table-player-cards">&#127183; ${cardCount}</div>
+              </div>
+            </div>
+            <div class="table-player-fan">
+              ${fanHtml}
             </div>
           </div>
         `;
@@ -621,20 +787,38 @@
   const btnCopyShareLink = document.getElementById("btnCopyShareLink");
   if (btnCopyShareLink) {
     btnCopyShareLink.addEventListener("click", async () => {
+      const isMobileApp = window.location.protocol === "capacitor:" || window.location.protocol === "file:" || window.Capacitor;
+      const shortCode = `#UNO${currentGame?.id ? currentGame.id.slice(0, 4).toUpperCase() : ""}`;
+      const shareText = isMobileApp
+        ? `Join my WaterMate UNO match! Room Code: ${shortCode}`
+        : window.location.href;
+
+      if (navigator.share && isMobileApp) {
+        try {
+          await navigator.share({
+            title: "Join UNO Match!",
+            text: shareText
+          });
+          return;
+        } catch (_) {}
+      }
+
       try {
-        await navigator.clipboard.writeText(window.location.href);
+        await navigator.clipboard.writeText(isMobileApp ? shortCode : window.location.href);
+        const originalText = btnCopyShareLink.textContent;
         btnCopyShareLink.textContent = "Copied!";
         setTimeout(() => {
-          btnCopyShareLink.textContent = "Copy Link";
+          btnCopyShareLink.textContent = originalText;
         }, 2000);
       } catch (_) {
         const shareInput = document.getElementById("lobbyShareInput");
         if (shareInput) {
           shareInput.select();
           document.execCommand("copy");
+          const originalText = btnCopyShareLink.textContent;
           btnCopyShareLink.textContent = "Copied!";
           setTimeout(() => {
-            btnCopyShareLink.textContent = "Copy Link";
+            btnCopyShareLink.textContent = originalText;
           }, 2000);
         }
       }
@@ -662,6 +846,7 @@
 
   btnLeaveGame.addEventListener("click", async () => {
     if (!confirm("Are you sure you want to leave this UNO game?")) return;
+    cleanupOrientation();
     try {
       await Api.leaveUnoGame(gameId);
       window.location.href = "games.html";
@@ -669,6 +854,30 @@
       showAlert(err.message || "Failed to leave game.");
     }
   });
+
+  const btnBackGames = document.getElementById("btnBackGames");
+  if (btnBackGames) {
+    btnBackGames.addEventListener("click", cleanupOrientation);
+  }
+
+  // Settings & Rules Modal listeners
+  if (btnGameSettings && gameSettingsModal) {
+    btnGameSettings.addEventListener("click", () => {
+      gameSettingsModal.hidden = false;
+    });
+  }
+  if (btnSettingsClose && gameSettingsModal) {
+    btnSettingsClose.addEventListener("click", () => {
+      gameSettingsModal.hidden = true;
+    });
+  }
+  if (gameSettingsModal) {
+    gameSettingsModal.addEventListener("click", (e) => {
+      if (e.target === gameSettingsModal) {
+        gameSettingsModal.hidden = true;
+      }
+    });
+  }
 
   // =======================================================
   // 5. REALTIME SYNCHRONIZATION
