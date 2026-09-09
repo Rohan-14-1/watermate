@@ -182,10 +182,9 @@
 
   function updateRotateButtonUI() {
     if (!btnRotateScreen) return;
-    const isRotated = arenaShell ? arenaShell.classList.contains("is-force-landscape") : false;
     const isNativeLandscape = !isDevicePortrait();
 
-    if (isRotated || isNativeLandscape) {
+    if (isNativeLandscape) {
       btnRotateScreen.classList.add("is-rotated");
       btnRotateScreen.title = "Rotate Screen (Switch to Portrait)";
     } else {
@@ -195,16 +194,15 @@
   }
 
   async function handleRotateScreen() {
-    if (!arenaShell) return;
-
     const inPortrait = isDevicePortrait();
-    const isCurrentlyForced = arenaShell.classList.contains("is-force-landscape");
 
-    // 1. Try Native Screen Orientation API if supported (e.g. Android Chrome, PWAs, Capacitor Android)
+    // Use the native viewport whenever orientation locking is available. Rotating
+    // the page with CSS leaves the status bar and touch coordinates in portrait,
+    // which creates a clipped, sideways game board on iOS.
     let nativeLocked = false;
     if (window.screen && window.screen.orientation && typeof window.screen.orientation.lock === "function") {
       try {
-        if (inPortrait && !isCurrentlyForced) {
+        if (inPortrait) {
           await window.screen.orientation.lock("landscape");
           nativeLocked = true;
         } else {
@@ -216,16 +214,16 @@
       }
     }
 
-    // 2. Fallback / Complementary CSS Simulated Rotation
-    // If native lock was not permitted or didn't rotate viewport (e.g. iOS Safari or un-fullscreened mobile browser)
     if (!nativeLocked) {
-      arenaShell.classList.toggle("is-force-landscape");
-      arenaShell.scrollTop = 0;
+      showAlert(
+        inPortrait
+          ? "Rotate your device to landscape to use the wide game layout."
+          : "Rotate your device to portrait to return to the tall game layout.",
+        "success"
+      );
     }
 
     updateRotateButtonUI();
-    // Dispatch resize event so all dimensions reflow cleanly
-    window.dispatchEvent(new Event("resize"));
   }
 
   if (btnRotateScreen) {
@@ -234,18 +232,11 @@
   }
 
   window.addEventListener("resize", () => {
-    // If device is physically turned to landscape, clear forced CSS rotation to avoid double-rotating
-    if (!isDevicePortrait() && arenaShell && arenaShell.classList.contains("is-force-landscape")) {
-      arenaShell.classList.remove("is-force-landscape");
-    }
     updateRotateButtonUI();
   });
 
   if (window.screen && window.screen.orientation) {
     window.screen.orientation.addEventListener("change", () => {
-      if (!isDevicePortrait() && arenaShell && arenaShell.classList.contains("is-force-landscape")) {
-        arenaShell.classList.remove("is-force-landscape");
-      }
       updateRotateButtonUI();
     });
   }
@@ -256,9 +247,6 @@
         window.screen.orientation.unlock();
       }
     } catch (_) {}
-    if (arenaShell) {
-      arenaShell.classList.remove("is-force-landscape");
-    }
   }
 
   window.addEventListener("beforeunload", cleanupOrientation);
