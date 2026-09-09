@@ -30,6 +30,15 @@
         <button type="button" class="uno-sound-btn" id="btnToggleSound" title="Toggle Sound">
           &#128266;
         </button>
+        <button type="button" class="uno-icon-btn" id="btnGameSettings" title="Game Settings & Rules">
+          &#9881;
+        </button>
+        <button type="button" class="uno-icon-btn uno-rotate-btn" id="btnRotateScreen" title="Rotate Screen (Portrait / Landscape)" aria-label="Rotate Screen">
+          <svg class="uno-rotate-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+        </button>
         <button type="button" class="btn btn-secondary uno-leave-btn" id="btnLeaveGame">
           Leave
         </button>
@@ -62,7 +71,7 @@
           </div>
 
           <div class="uno-lobby-share-box" id="lobbyShareBox">
-            <label class="uno-lobby-share-label" for="lobbyShareInput">Share room link with group roommates:</label>
+            <label class="uno-lobby-share-label" id="lobbyShareLabel" for="lobbyShareInput">Share room link or code with group roommates:</label>
             <div class="uno-lobby-share-row">
               <input type="text" id="lobbyShareInput" readonly />
               <button type="button" class="btn btn-secondary" id="btnCopyShareLink">Copy Link</button>
@@ -76,71 +85,99 @@
 
       <!-- 2. GAME ARENA VIEW (PLAYING / FINISHED) -->
       <section id="gameplayView" class="uno-gameplay-view" style="display:none;">
-        <!-- Top Status & Direction Banner -->
-        <div class="uno-top-hud">
-          <div class="uno-turn-banner" id="turnBanner">
-            <div class="uno-turn-pulse"></div>
-            <span id="turnText">Waiting for game turn&hellip;</span>
+        <!-- Top Floating HUD -->
+        <div class="uno-arena-floating-hud">
+          <!-- Room & Match Info Pill (Top Left) -->
+          <div class="uno-hud-card" id="roomMetaBadge">
+            <div class="uno-hud-line">
+              <span class="uno-hud-icon">&#128101;</span>
+              <span>Room: <strong id="roomShortCode">#UNO</strong></span>
+            </div>
+            <div class="uno-hud-line">
+              <span class="uno-hud-icon">&#128202;</span>
+              <span>Round 1 &bull; Turn <strong id="turnCounterVal">0</strong></span>
+            </div>
           </div>
+
+          <!-- Play Direction Pill (Top Right) -->
           <div class="uno-direction-indicator" id="directionIndicator" title="Play Direction">
             <span class="uno-dir-arrow" id="dirArrow">&#8635;</span>
             <span id="dirLabel">Clockwise</span>
           </div>
         </div>
 
-        <!-- Opponents Area -->
-        <div class="uno-opponents-area" id="opponentsArea">
-          <!-- Dynamically filled with opponents -->
-        </div>
+        <!-- 3D Oval Felt Table Container -->
+        <div class="uno-felt-table-wrapper">
+          <div class="uno-table-felt" id="unoTableFelt">
+            <!-- Embossed UNO Watermark -->
+            <div class="uno-table-watermark">UNO</div>
 
-        <!-- Center Table -->
-        <div class="uno-table-felt">
-          <!-- Active Color Ring -->
-          <div class="uno-color-ring" id="activeColorRing"></div>
+            <!-- Perimeter Seating: Top, Left, Right -->
+            <div class="uno-table-seats" id="opponentsArea">
+              <!-- Dynamically rendered seats with capsules & card fans -->
+            </div>
 
-          <!-- Discard Pile & Draw Pile -->
-          <div class="uno-piles-wrapper">
-            <!-- Draw Pile -->
-            <div class="uno-draw-pile" id="drawPileBtn" role="button" tabindex="0" title="Tap to draw a card">
-              <div class="uno-card uno-card--back">
-                <div class="uno-card__back-oval">UNO</div>
+            <!-- Turn Banner (Center Top) -->
+            <div class="uno-turn-banner" id="turnBanner">
+              <div class="uno-turn-pulse"></div>
+              <span id="turnText">Waiting for player&hellip;</span>
+            </div>
+
+            <!-- Center Table Piles -->
+            <div class="uno-table-center-piles">
+              <!-- Draw Pile -->
+              <div class="uno-pile-group">
+                <div class="uno-draw-pile" id="drawPileBtn" role="button" tabindex="0" title="Tap to draw a card">
+                  <div class="uno-card uno-card--back">
+                    <div class="uno-card__back-oval">UNO</div>
+                  </div>
+                </div>
+                <div class="uno-pile-pill" id="drawPileCountBadge">Deck</div>
               </div>
-              <div class="uno-pile-count" id="drawPileCountBadge">Deck</div>
+
+              <!-- Discard Pile -->
+              <div class="uno-pile-group">
+                <div class="uno-discard-pile" id="discardPile">
+                  <!-- Rendered top card -->
+                </div>
+                <div class="uno-pile-pill" id="discardPileLabel">Current Card</div>
+              </div>
             </div>
 
-            <!-- Discard Pile -->
-            <div class="uno-discard-pile" id="discardPile">
-              <!-- Rendered top card -->
+            <!-- Action Buttons (Center Bottom) -->
+            <div class="uno-table-actions">
+              <button type="button" class="uno-action-btn uno-btn-draw" id="btnDrawCard">
+                &#127183; Draw Card
+              </button>
+              <button type="button" class="uno-action-btn uno-btn-uno" id="btnCallUno">
+                &#9889; UNO!
+              </button>
+              <button type="button" class="uno-action-btn uno-btn-pass" id="btnPassTurn" style="display:none;">
+                &#8677; Pass Turn
+              </button>
+              <button type="button" class="uno-action-btn uno-btn-catch" id="btnCatchUno" style="display:none;">
+                &#128680; Catch UNO!
+              </button>
+            </div>
+
+            <!-- Last Action Toast -->
+            <div class="uno-action-pill" id="actionPill" style="display:none;">Game in progress</div>
+            <!-- Active Color Ring (subtle glow on felt) -->
+            <div class="uno-color-ring" id="activeColorRing" style="display:none;"></div>
+          </div>
+        </div>
+
+        <!-- Player Hand Dock ("Your Cards") -->
+        <div class="uno-hand-dock" id="playerHandDock">
+          <div class="uno-hand-dock__header">
+            <div class="uno-hand-dock__title">
+              Your Cards (<span id="handCountBadge">0</span>)
+            </div>
+            <div class="uno-hand-dock__hint" id="handHint">
+              Wait for your turn
             </div>
           </div>
-
-          <!-- Last Action Toast -->
-          <div class="uno-action-pill" id="actionPill">Game in progress</div>
-        </div>
-
-        <!-- Gameplay Controls HUD -->
-        <div class="uno-controls-hud">
-          <button type="button" class="uno-hud-btn btn-draw" id="btnDrawCard">
-            &#127183; Draw Card
-          </button>
-          <button type="button" class="uno-hud-btn btn-pass" id="btnPassTurn" style="display:none;">
-            &#8677; Pass Turn
-          </button>
-          <button type="button" class="uno-hud-btn btn-uno" id="btnCallUno">
-            &#9889; UNO!
-          </button>
-          <button type="button" class="uno-hud-btn btn-catch" id="btnCatchUno" style="display:none;">
-            &#128680; Catch UNO!
-          </button>
-        </div>
-
-        <!-- Player Hand Dock -->
-        <div class="uno-hand-container">
-          <div class="uno-hand-title">
-            <span>Your Cards (<span id="handCountBadge">0</span>)</span>
-            <span class="uno-hand-hint" id="handHint">Select a playable card to play</span>
-          </div>
-          <div class="uno-hand-cards" id="playerHandCards">
+          <div class="uno-hand-dock__cards" id="playerHandCards">
             <!-- Cards dynamically rendered here -->
           </div>
         </div>
@@ -171,6 +208,23 @@
           <a href="games.html" class="btn btn-primary btn-large" style="width:100%;">
             Return to Games
           </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Settings & Rules -->
+    <div class="modal-overlay" id="gameSettingsModal" hidden>
+      <div class="modal uno-settings-modal" style="max-width:440px; border-radius:18px; padding:24px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <h3 style="margin:0; font-size:1.2rem;">UNO Game Rules</h3>
+          <button type="button" class="btn-link" id="btnSettingsClose" style="font-size:1.4rem; line-height:1; color:#94a3b8;">&times;</button>
+        </div>
+        <div style="font-size:0.88rem; color:#cbd5e1; line-height:1.55; display:flex; flex-direction:column; gap:10px;">
+          <div><strong>🎯 Goal:</strong> Be the first player to get rid of all your cards.</div>
+          <div><strong>🔄 Matching:</strong> Play a card that matches the top discard card by <em>color</em> or <em>number/action</em>.</div>
+          <div><strong>⚡ Calling UNO:</strong> When you have 1 card left, declare UNO before playing or your turn ends!</div>
+          <div><strong>🃏 Wild Cards:</strong> Can be played anytime to choose the next active color.</div>
+          <div><strong>🛑 Special Cards:</strong> Skip pauses the next player, Reverse changes play direction, and Draw Two forces +2 cards.</div>
         </div>
       </div>
     </div>
