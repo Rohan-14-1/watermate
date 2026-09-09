@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 </head>
-<body>
+<body class="chat-page">
   <div class="app-shell">
     <header class="topbar">
       <div class="topbar__brand">
@@ -29,7 +29,7 @@
       <div class="topbar__user" id="userBox"></div>
     </header>
 
-    <main class="main">
+    <main class="main chat-main">
       <div id="pageAlert"></div>
 
       <div class="chat-container">
@@ -46,13 +46,13 @@
         <div class="chat-header">
           <div class="chat-header__info">
             <div class="chat-header__avatar" id="chatGroupAvatar">💬</div>
-            <div>
+            <div class="chat-header__titles">
               <h2 class="chat-header__title" id="chatGroupName">Team Chat</h2>
               <p class="chat-header__sub" id="chatMembersCount">Connecting to team&hellip;</p>
             </div>
           </div>
-          <button type="button" class="btn btn-secondary" id="chatSendAlertBtn" style="padding:6px 12px; font-size:0.8rem;">
-            📢 Alert Team
+          <button type="button" class="btn btn-secondary chat-alert-btn" id="chatSendAlertBtn" title="Send Team Notification Alert">
+            📢 <span class="chat-alert-label">Alert Team</span>
           </button>
         </div>
 
