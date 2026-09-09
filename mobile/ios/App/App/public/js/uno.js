@@ -193,6 +193,14 @@
     }
   }
 
+  function canLockScreenOrientation() {
+    return Boolean(
+      window.screen &&
+      window.screen.orientation &&
+      typeof window.screen.orientation.lock === "function"
+    );
+  }
+
   async function handleRotateScreen() {
     const inPortrait = isDevicePortrait();
 
@@ -200,7 +208,7 @@
     // the page with CSS leaves the status bar and touch coordinates in portrait,
     // which creates a clipped, sideways game board on iOS.
     let nativeLocked = false;
-    if (window.screen && window.screen.orientation && typeof window.screen.orientation.lock === "function") {
+    if (canLockScreenOrientation()) {
       try {
         if (inPortrait) {
           await window.screen.orientation.lock("landscape");
@@ -214,21 +222,18 @@
       }
     }
 
-    if (!nativeLocked) {
-      showAlert(
-        inPortrait
-          ? "Rotate your device to landscape to use the wide game layout."
-          : "Rotate your device to portrait to return to the tall game layout.",
-        "success"
-      );
-    }
-
-    updateRotateButtonUI();
+    if (nativeLocked) updateRotateButtonUI();
   }
 
   if (btnRotateScreen) {
-    btnRotateScreen.addEventListener("click", handleRotateScreen);
-    updateRotateButtonUI();
+    // iOS and in-app browsers cannot rotate the native viewport from a web page.
+    // Hide the unavailable action rather than displaying a disruptive message.
+    if (canLockScreenOrientation()) {
+      btnRotateScreen.addEventListener("click", handleRotateScreen);
+      updateRotateButtonUI();
+    } else {
+      btnRotateScreen.hidden = true;
+    }
   }
 
   window.addEventListener("resize", () => {
